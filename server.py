@@ -13,7 +13,10 @@ ADD_PAGE_FORM = """\
      Page name:
       <div><textarea name="url" rows="1" cols="30"></textarea></div>
       <input type="hidden" name="project_name" value = "%s">
-      <input name = "command" type="submit" value="Add Page">
+      <input name = "command" type="submit" value="Add or Replace Page">
+      <input name = "command" type="submit" value="Update Page">
+      <br>
+      <input name = "command" type="submit" value="Roll Back Page">
       <input name = "command" type="submit" value="View Page">
       <input name = "command" type="submit" value="Delete Page">
     </form>
@@ -24,9 +27,10 @@ ADD_USER_FORM = """\
      <form>
      Username:
       <input type="hidden" name="project_name" value = "%s">
-      <div><input name="user_name" cols="30"></div>
+      <div><textarea name="user_name" rows = "1"cols="30"></textarea></div>
       <input name = "command" type="submit" value="Add Access">
       <input name = "command" type="submit" value="Remove Access">
+      <br>
       <input name = "command" type="submit" value="Add Admin">
       <input name = "command" type="submit" value="Remove Admin">
     </form>
@@ -56,8 +60,8 @@ SWITCH_PROJECT_FORM = """\
 DEFAULT_PROJECT_NAME = 'default_project'
     
 class Version(ndb.Model):
-    version_id = ndb.IntegerProperty()
     time_added = ndb.DateTimeProperty(auto_now_add=True)
+    version_id = ndb.IntegerProperty()
     contents = ndb.StringProperty(indexed=False)
 
 class Page(ndb.Model):
@@ -88,39 +92,38 @@ class MainPage(webapp2.RequestHandler):
         project.put()
         return project
         
-    def add_page(self):
+    def add_page(self, keep_comments = False):
+        ''' Get project name, username, url and key '''
         project_name = self.request.get('project_name',DEFAULT_PROJECT_NAME)
+        key = ndb.Key("Project", project_name)
         user = users.get_current_user()
         url = self.request.get('url')
-        if Page.query(Page.url == url,
-                      ancestor=ndb.Key("Project", project_name)).fetch():
-            self.response.write("<p><h1>Page already exists.</h1></p><hr>")  
-            return
+        ''' Try to grab the page'''
         try:
             html = urllib.urlopen(url).read()
         except:
             self.response.write("<p><h1>Page not found.</h1></p><hr>")  
             return
-        # Make the page
-        page = Page(
-                id=url, added_by=user, url=url,
-                parent=ndb.Key("Project", project_name))
-        page.put()
-        # Make the version
-        version = Version(parent=ndb.Key(Project, project_name,Page,page.url))   
-        version.version_id = Version.query().count()
+        ''' Make the page if it doesn't already exist'''
+        if not Page.query(Page.url == url, ancestor=key).fetch():
+            # Make the page
+            page = Page(id=url, added_by=user, url=url,parent=key)
+            page.put()
+        else:
+            page = ndb.Key("Project", project_name, "Page", url).get()
+        ''' Add a new version at the current time '''
+        vid = Version.query().count()
+        version = Version(
+                parent=ndb.Key(Project, project_name,Page,page.url), id=vid)
         version.contents = sub(r'(?i)<script>.*?</script>{1}?', "", html)
+        version.version_id = vid
         version.put()
         return page
         
     def view_page(self):
         project_name = self.request.get('project_name', DEFAULT_PROJECT_NAME)
-        url = self.request.get('url')       
-        pages = Page.query(ancestor=ndb.Key("Project", project_name)).fetch()
-        page = None
-        for p in pages:
-            if p.url == url:
-                page = p
+        url = self.request.get('url')    
+        page = ndb.Key("Project", project_name, "Page", url).get()
         if not page:
             self.response.write("<p><h1>Page not found.</h1></p><hr>")
             return False
@@ -128,7 +131,19 @@ class MainPage(webapp2.RequestHandler):
                 ancestor=ndb.Key("Project", project_name, "Page", page.url))
         latest = latest.order(-Version.time_added).fetch()
         self.response.write(latest[0].contents)
-        return True
+        return
+        
+    def roll_back(self):
+        project_name = self.request.get('project_name', DEFAULT_PROJECT_NAME)
+        url = self.request.get('url')
+        latest = Version.query(
+                ancestor=ndb.Key("Project", project_name, "Page", url))
+        latest = latest.order(-Version.time_added).fetch()
+        if len(latest) <= 1:
+            self.response.write("<p><h1>Not enough versions found.</h1></p>")
+            return
+        ndb.Key("Project", project_name, "Page", url,
+                "Version", latest[0].version_id).delete()
     
     def display_login(self):
             self.response.write("<hr>")
@@ -188,8 +203,14 @@ class MainPage(webapp2.RequestHandler):
         if user not in project.members and not project.public:          
             self.response.write("<p><h1>Access denied..</h1></p>")
             return
-        if self.request.get('command') == "Add Page":
-            self.add_page()
+        if self.request.get('command') == "Add or Replace Page":
+            self.add_page(False)
+            return
+        if self.request.get('command') == "Update Page":
+            self.add_page(True)
+            return
+        if self.request.get('command') == "Roll Back Page":
+            self.roll_back()
             return
         if self.request.get('command') == "View Page":
             if self.view_page(): # If page exists.
