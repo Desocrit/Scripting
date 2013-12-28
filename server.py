@@ -182,8 +182,8 @@ class MainPage(webapp2.RequestHandler):
             except:
                 self.response.write("<p><h1>Project not found.</h1></p>")
                 return
-        # Project commands
-        if user not in ndb.Key("Project", project_name).members:
+        ''' Project commands '''
+        if user not in ndb.Key("Project", project_name).get().members:
             self.response.write("<p><h1>Access denied..</h1></p>")
             return
         if self.request.get('command') == "Add Page":
@@ -191,8 +191,8 @@ class MainPage(webapp2.RequestHandler):
         if self.request.get('command') == "View Page":
             if self.view_page(): # If page exists.
                 return
-        # Admin commands
-        if user not in ndb.Key("Project", project_name).admins:
+        ''' Admin commands '''
+        if user not in ndb.Key("Project", project_name).get().admins:
             self.response.write("<p><h1>Access denied..</h1></p>")
             return
         if self.request.get('command') == "Delete Page":
