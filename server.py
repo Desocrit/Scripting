@@ -183,7 +183,8 @@ class MainPage(webapp2.RequestHandler):
                 self.response.write("<p><h1>Project not found.</h1></p>")
                 return
         ''' Project commands '''
-        if user not in ndb.Key("Project", project_name).get().members:
+        if user not in ndb.Key("Project", project_name).get().members and \
+                not ndb.Key("Project", project_name).get().public:          
             self.response.write("<p><h1>Access denied..</h1></p>")
             return
         if self.request.get('command') == "Add Page":
@@ -202,9 +203,12 @@ class MainPage(webapp2.RequestHandler):
             except:
                 self.response.write("<p><h1>Page not found.</h1></p>")
         if self.request.get('command') == "Make Public":
+            self.response.write("Changing")
             ndb.Key("Project", project_name).get().public = True
+            ndb.Key("Project", project_name).get().put()
         if self.request.get('command') == "Make Private":
             ndb.Key("Project", project_name).get().public = False
+            ndb.Key("Project", project_name).get().put()
 
     def get(self):
         self.response.write('<html><body>')
