@@ -61,6 +61,7 @@ DEFAULT_PROJECT_NAME = 'default_project'
     
 class Version(ndb.Model):
     time_added = ndb.DateTimeProperty(auto_now_add=True)
+    creator = admins = ndb.UserProperty()
     version_id = ndb.IntegerProperty()
     contents = ndb.StringProperty(indexed=False)
 
@@ -117,6 +118,7 @@ class MainPage(webapp2.RequestHandler):
                 parent=ndb.Key(Project, project_name,Page,page.url), id=vid)
         version.contents = sub(r'(?i)<script>.*?</script>{1}?', "", html)
         version.version_id = vid
+        version.creator = user
         version.put()
         return page
         
@@ -209,9 +211,6 @@ class MainPage(webapp2.RequestHandler):
         if self.request.get('command') == "Update Page":
             self.add_page(True)
             return
-        if self.request.get('command') == "Roll Back Page":
-            self.roll_back()
-            return
         if self.request.get('command') == "View Page":
             if self.view_page(): # If page exists.
                 return False
@@ -219,6 +218,9 @@ class MainPage(webapp2.RequestHandler):
         ''' Admin commands '''
         if user not in project.admins:
             self.response.write("<p><h1>Access denied..</h1></p>")
+            return
+        if self.request.get('command') == "Roll Back Page":
+            self.roll_back()
             return
         if self.request.get('command') == "Delete Page":
             try:
