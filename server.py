@@ -27,7 +27,8 @@ ADD_USER_FORM = """\
       <div><input name="user_name" cols="30"></div>
       <input name = "command" type="submit" value="Add Access">
       <input name = "command" type="submit" value="Remove Access">
-      <input name = "command" type="submit" value="Make Admin">
+      <input name = "command" type="submit" value="Add Admin">
+      <input name = "command" type="submit" value="Remove Admin">
     </form>
 """
 
@@ -142,7 +143,7 @@ class MainPage(webapp2.RequestHandler):
             self.response.write('<a href="%s">%s</a>'% (url, url_linktext))
             
     def display_project(self, project_name, project):
-        # Print the page urls.
+        ''' Print the page urls. '''
         pages_query = Page.query(
             ancestor=ndb.Key("Project", project_name)).order(-Page.created)
         pages = pages_query.fetch(10)
@@ -167,6 +168,7 @@ class MainPage(webapp2.RequestHandler):
         
     def handle_commands(self, command, project_name):
         user = users.get_current_user()
+        key = ndb.Key("Project", project_name)
         if command == 'Switch Project':
             self.redirect(
                         '/?'+urllib.urlencode({'project_name':project_name}))
@@ -176,24 +178,25 @@ class MainPage(webapp2.RequestHandler):
         if command == 'Delete Project':
             if user not in ndb.Key("Project", project_name).admins:
                 self.response.write("<p><h1>Access denied..</h1></p>")
-                return
             try:
-                ndb.Key("Project", project_name).delete()
+               key.delete()
             except:
                 self.response.write("<p><h1>Project not found.</h1></p>")
-                return
+            return
         ''' Project commands '''
-        if user not in ndb.Key("Project", project_name).get().members and \
-                not ndb.Key("Project", project_name).get().public:          
+        project = key.get()
+        if user not in project.members and not project.public:          
             self.response.write("<p><h1>Access denied..</h1></p>")
             return
         if self.request.get('command') == "Add Page":
             self.add_page()
+            return
         if self.request.get('command') == "View Page":
             if self.view_page(): # If page exists.
-                return
+                return False
+            return
         ''' Admin commands '''
-        if user not in ndb.Key("Project", project_name).get().admins:
+        if user not in project.admins:
             self.response.write("<p><h1>Access denied..</h1></p>")
             return
         if self.request.get('command') == "Delete Page":
@@ -202,13 +205,40 @@ class MainPage(webapp2.RequestHandler):
                         self.request.get('url')).delete()
             except:
                 self.response.write("<p><h1>Page not found.</h1></p>")
+            return
         if self.request.get('command') == "Make Public":
-            self.response.write("Changing")
-            ndb.Key("Project", project_name).get().public = True
-            ndb.Key("Project", project_name).get().put()
+            project.public = True
         if self.request.get('command') == "Make Private":
-            ndb.Key("Project", project_name).get().public = False
-            ndb.Key("Project", project_name).get().put()
+            project.public = False
+        if not self.request.get('user_name'):
+            project.put()
+        else:
+            try:
+                user_name= users.User(self.request.get('user_name'))
+            except:
+                self.response.write("<p><h1>User not recognised.</h1></p>")
+                return
+        if self.request.get('command') == "Add Access":
+            if user_name not in project.members:
+                project.members.append(user_name)
+        if self.request.get('command') == "Remove Access":
+            if len(project.members) != 1:
+                if user_name in project.members:
+                    project.members.remove(user_name)
+            else:
+                self.response.write("Cannot remove final user from project.")
+                return
+        if self.request.get('command') == "Add Admin":
+            if user_name not in project.admins:
+                project.admins.append(user_name)
+        if self.request.get('command') == "Remove Admin":
+            if len(project.admins) != 1:
+                if user_name in project.admins:
+                    project.admins.remove(user_name)
+            else:
+                self.response.write("Cannot remove final admin from project.")
+                return
+        project.put()
 
     def get(self):
         self.response.write('<html><body>')
@@ -218,6 +248,8 @@ class MainPage(webapp2.RequestHandler):
         '''Handle all the different get commands'''
         if command:
             project = self.handle_commands(command, project_name)
+            if project == False:
+                return
         ''' Get the project details.'''
         if users.get_current_user():
             if not project:  
