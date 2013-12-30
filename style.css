@@ -1,0 +1,13 @@
+
+aside
+{
+    display: inline-block;
+    height: 100%;
+    width: 300px;
+}
+
+section
+{
+    display: inline-block;
+    height: 100%;
+}
