@@ -55,9 +55,12 @@ SWITCH_PROJECT_FORM = """\
       <input name="command" type="submit" value="Delete Project">
     </form>  
 """
-# Admin console
+
+DEFAULT_OUTPUT_TYPE = "html"
 
 DEFAULT_PROJECT_NAME = 'default_project'
+
+
     
 class Version(ndb.Model):
     ''' A single version of a web page.
@@ -84,14 +87,42 @@ class Project(ndb.Model):
 
 class MainPage(webapp2.RequestHandler):
     
+    def status(self, message):
+        self.result = message
+        self.json['status'] = 'success'
+        if self.output_type.lower() == "html" and message != 'success':
+            self.response.write("<p><h1>"+message+"</h1></p><hr>")
+            
+    def page_to_json(self, project):
+        self.json['project_name'] = str(project.name)
+        self.json['access'] = "public" if project.public else "private"
+        self.json['admins'] = [str(user) for user in project.admins]
+        self.json['members'] = [str(user) for user in project.members]
+        pages = []
+        children = Page.query(ancestor=ndb.Key(Project, project.name)).fetch()
+        for child in children:
+            page = {'url': str(child.url), 'date_created': str(child.created)}
+            page['added_by'] = str(child.added_by)
+            pages.append(page)
+            versions = []
+            for v in Version.query(ancestor=ndb.Key(
+                    Project,project.name, Page,child.url)).fetch():
+                version = {'id': str(v.version_id)}
+                version['date_created'] = str(v.time_added)
+                version['creator'] = str(v.creator)
+                versions.append(version)
+            page['versions'] = versions
+        self.json['pages'] = pages
+                
+            
     def create_project(self, project_name):
         ''' Creates a new project, with the current user as admin & member'''
         # Potential error cases:
         if not users.get_current_user():
-            self.response.write("<p><h1>Not logged in.</h1></p><hr>")  
+            self.status("User is not currently logged in.")  
             return
         if Project.query(Project.name == project_name).fetch():
-            self.response.write("<p><h1>Project already exists.</h1></p><hr>")  
+            self.status("Project already exists.")  
             return
         # Create the project itself.
         user = [users.get_current_user()]
@@ -99,6 +130,8 @@ class MainPage(webapp2.RequestHandler):
                 id=project_name, name=project_name, admins=user, members=user)
         # Add to the database and return it.
         project.put()
+        self.status('success')
+        self.page_to_json(project)
         return project
         
     def add_page(self, keep_comments = False):
@@ -112,7 +145,7 @@ class MainPage(webapp2.RequestHandler):
         try:
             html = urllib.urlopen(url).read()
         except:
-            self.response.write("<p><h1>Page not found.</h1></p><hr>")  
+            self.status("Page not found.")  
             return
         # Add the page to the database if it does not exist, otherwise get it.
         if not Page.query(Page.url == url, ancestor=key).fetch():
@@ -129,6 +162,7 @@ class MainPage(webapp2.RequestHandler):
         version.version_id = vid
         version.creator = user
         version.put()
+        self.status('success')
         return page
         
     def view_page(self):
@@ -139,7 +173,7 @@ class MainPage(webapp2.RequestHandler):
         # Try to get the page. Return if it is not found.
         page = ndb.Key("Project", project_name, "Page", url).get()
         if not page:
-            self.response.write("<p><h1>Page not found.</h1></p><hr>")
+            self.status("Page not found.")
             return False
         # Grab the latest version of the page.
         latest = Version.query(
@@ -159,10 +193,11 @@ class MainPage(webapp2.RequestHandler):
         latest = latest.order(-Version.time_added).fetch()
         # If there is more than 1 version stored, delete the most recent.
         if len(latest) <= 1:
-            self.response.write("<p><h1>Not enough versions found.</h1></p>")
+            self.status("Not enough versions found.")
             return
         ndb.Key("Project", project_name, "Page", url,
                 "Version", latest[0].version_id).delete()
+        self.status('success')
     
     def display_login(self):
         ''' Simply draws the login form for the api '''
@@ -199,7 +234,7 @@ class MainPage(webapp2.RequestHandler):
             self.response.write(str(cgi.escape(page.url)) + "</p>")
         self.response.write(ADD_PAGE_FORM % cgi.escape(project_name))
         
-    def display_admin(self, project_name, project):
+    def display_admin(self, project_name):
         ''' Draws the admin and user access forms '''
         self.response.write(ADD_USER_FORM % cgi.escape(project_name))
         self.response.write(ACCESS_FORM % cgi.escape(project_name))
@@ -210,58 +245,61 @@ class MainPage(webapp2.RequestHandler):
         user = users.get_current_user()
         key = ndb.Key("Project", project_name)
         if command == 'Switch Project':
-            self.redirect(
-                        '/?'+urllib.urlencode({'project_name':project_name}))
+            self.redirect('/?'+urllib.urlencode({'project_name':project_name}))
+            self.status('success')
+            self.page_to_json(key.get())
             return
         if command == 'Create Project':
             return [self.create_project(project_name)]
         # Project commands
         project = key.get()
         if user not in project.members and not project.public:          
-            self.response.write("<p><h1>Access denied..</h1></p>")
+            self.status("Access denied.")
             return
-        if self.request.get('command') == "Add or Replace Page":
+        if command == "Add or Replace Page":
             self.add_page(False)
             return
-        if self.request.get('command') == "Update Page":
+        if command == "Update Page":
             self.add_page(True)
             return
-        if self.request.get('command') == "View Page":
+        if command== "View Page":
             if self.view_page(): # If page exists.
                 return False
             return
         ''' Admin commands '''
         if user not in project.admins:
-            self.response.write("<p><h1>Access denied..</h1></p>")
+            self.status("Access denied.")
             return
         if command == 'Delete Project':
             try:
                key.delete()
+               self.status('success')
             except:
-                self.response.write("<p><h1>Project not found.</h1></p>")
+                self.status("Project not found.")
             return
-        if self.request.get('command') == "Roll Back Page":
+        if command == "Roll Back Page":
             self.roll_back()
             return
-        if self.request.get('command') == "Delete Page":
+        if command == "Delete Page":
             try:
                 ndb.Key("Project", project_name, "Page",
                         self.request.get('url')).delete()
             except:
-                self.response.write("<p><h1>Page not found.</h1></p>")
+                self.status("Page not found.")
             return
-        if self.request.get('command') == "Make Public":
+        if command == "Make Public":
             project.public = True
-        if self.request.get('command') == "Make Private":
+        if command == "Make Private":
             project.public = False
         if not self.request.get('user_name'):
+            self.status('success')
             project.put()
             return
         else:
             try:
-                user_name= users.User(self.request.get('user_name'))
+                user_name = users.User(self.request.get('user_name'))
             except:
-                self.response.write("<p><h1>User not recognised.</h1></p>")
+                self.status("User not recognised.")
                 return
         # User access level commands.
         if self.request.get('command') == "Add Access":
@@ -272,7 +310,7 @@ class MainPage(webapp2.RequestHandler):
                 if user_name in project.members:
                     project.members.remove(user_name)
             else:
-                self.response.write("Cannot remove final user from project.")
+                self.status("Cannot remove final user from project.")
                 return
         if self.request.get('command') == "Add Admin":
             if user_name not in project.admins:
@@ -282,13 +320,18 @@ class MainPage(webapp2.RequestHandler):
                 if user_name in project.admins:
                     project.admins.remove(user_name)
             else:
-                self.response.write("Cannot remove final admin from project.")
+                self.status("Cannot remove final admin from project.")
                 return
+        self.status('success')
         project.put()
 
     def get(self):
         ''' Draws the main page, and handles any commands '''
-        self.response.write('<html><body>')
+        self.result = None
+        self.output_type = self.request.get('output_type', DEFAULT_OUTPUT_TYPE)
+        self.json = {}
+        if self.output_type.lower() == "html":
+            self.response.write('<html><body>')
         project_name= self.request.get('project_name',DEFAULT_PROJECT_NAME)
         project = None
         command = self.request.get('command', None)
@@ -296,6 +339,7 @@ class MainPage(webapp2.RequestHandler):
         if command:
             project = self.handle_commands(command, project_name)
             if project == False:
+                self.response.write(repr(self.json))
                 return
         # Get the project details.'''
         if users.get_current_user():
@@ -304,19 +348,28 @@ class MainPage(webapp2.RequestHandler):
             if project != [] and project[0] != None:
                 if users.get_current_user() in project[0].members \
                         or project[0].public:
-                    self.display_project(project_name, project[0])
-                    if users.get_current_user() in project[0].admins:
-                        self.display_admin(project_name, project[0])
+                    if self.output_type.lower() == "html":
+                        self.display_project(project_name, project[0])
+                        if users.get_current_user() in project[0].admins:
+                            self.display_admin(project_name)
+                    else:
+                        if not self.result:
+                            self.status('success')
+                            self.page_to_json(project[0])
                 else:
-                    self.response.write("<p><h1>Access denied.</h1></p>")
+                    self.status("Access denied.")
             else:
-                self.response.write("<p><h1>Project not found.</h1></p>")  
+                self.status("Project not found.")  
             # Project options.
-            self.response.write(
+            if self.output_type.lower() == 'html':  
+                self.response.write(
                     SWITCH_PROJECT_FORM % cgi.escape(project_name))
         # Display project details'''
-        self.display_login()
-        self.response.write("</body></html>")
+        if self.output_type.lower() == 'html':
+            self.display_login()
+            self.response.write("</body></html>")
+        if self.output_type.lower() == 'json':
+            self.response.write(repr(self.json))
 
 application = webapp2.WSGIApplication([
     ('/', MainPage)
