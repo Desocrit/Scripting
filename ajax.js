@@ -53,6 +53,7 @@ function apiCall(command, vars, callback)
     var req =
           '?command='      + command
         + '&project_name=' + project
+        + '&output_type=json'
         + '&' + vars;
 
     xmlhttp.timeout   = 3000;
