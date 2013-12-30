@@ -93,7 +93,7 @@ class MainPage(webapp2.RequestHandler):
         if self.output_type.lower() == "html" and message != 'success':
             self.response.write("<p><h1>"+message+"</h1></p><hr>")
             
-    def page_to_json(self, project):
+    def project_to_json(self, project):
         self.json['project_name'] = str(project.name)
         self.json['access'] = "public" if project.public else "private"
         self.json['admins'] = [str(user) for user in project.admins]
@@ -131,7 +131,7 @@ class MainPage(webapp2.RequestHandler):
         # Add to the database and return it.
         project.put()
         self.status('success')
-        self.page_to_json(project)
+        self.project_to_json(project)
         return project
         
     def add_page(self, keep_comments = False):
@@ -247,7 +247,7 @@ class MainPage(webapp2.RequestHandler):
         if command == 'Switch Project':
             self.redirect('/?'+urllib.urlencode({'project_name':project_name}))
             self.status('success')
-            self.page_to_json(key.get())
+            self.project_to_json(key.get())
             return
         if command == 'Create Project':
             return [self.create_project(project_name)]
@@ -355,7 +355,7 @@ class MainPage(webapp2.RequestHandler):
                     else:
                         if not self.result:
                             self.status('success')
-                            self.page_to_json(project[0])
+                            self.project_to_json(project[0])
                 else:
                     self.status("Access denied.")
             else:

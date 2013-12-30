@@ -53,3 +53,8 @@ Views the saved html for a page.
 
 project_name=x&url=y&command="Delete Page"
 Removed a page from the project
+
+Optionally:
+
+output_type=html output_type=json
+Determines the type of output provided.
