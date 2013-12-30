@@ -1,5 +1,6 @@
 var currentPage;
 var lastPing;
+var project;
 
 /**
  * Should display the main interface (called after successful login)
@@ -28,7 +29,7 @@ function displayTimeoutError()
 }
 
 
-function apiCall(method, vars, callback)
+function apiCall(command, vars, callback)
 {
     var xmlhttp = window.XMLHttpRequest
         ? new XMLHttpRequest()
@@ -49,7 +50,10 @@ function apiCall(method, vars, callback)
         }
     });
 
-    var req = method + '?' + vars;
+    var req =
+          '?command=' + command
+        + '&project_name=' + project
+        + '&' + vars;
 
     xmlhttp.timeout   = 3000;
     xmlhttp.ontimeout = displayTimeoutError;
@@ -57,11 +61,11 @@ function apiCall(method, vars, callback)
     xmlhttp.send();
 }
 
-function jsonCall(method, vars, success, fail)
+function jsonCall(command, vars, success, fail)
 {
     apiCall
     (
-        method,
+        command,
         vars,
         (function(text)
         {
@@ -99,14 +103,10 @@ function login()
 
 function getPage(url)
 {
-    apiCall
-    (
-        'page', 'url=' + url,
-        (function(text)
-        {
-            document.getElementById('main_area').innerHTML = text;
-        })
-    );
+    document.getElementById('page_holder').src =
+          '?command=View+Page'
+        + '&url=' + encodeURIComponent(url)
+        + '&project_name=' + project;
 }
 
 function checkForUpdates()
