@@ -51,7 +51,7 @@ function apiCall(command, vars, callback)
     });
 
     var req =
-          '?command=' + command
+          '?command='      + command
         + '&project_name=' + project
         + '&' + vars;
 
@@ -101,11 +101,11 @@ function login()
     jsonCall('login', vars, displayMain, displayLoginError);
 }
 
-function getPage(url)
+function getPage()
 {
     document.getElementById('page_holder').src =
           '?command=View+Page'
-        + '&url=' + encodeURIComponent(url)
+        + '&url=' + encodeURIComponent(document.getElementById('go_button').value)
         + '&project_name=' + project;
 }
 

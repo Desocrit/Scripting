@@ -10,4 +10,15 @@ section
 {
     display: inline-block;
     height: 100%;
+    margin: 0;
+}
+
+#url
+{
+    display: block;
+}
+
+#page_holder
+{
+    display: block;
 }
