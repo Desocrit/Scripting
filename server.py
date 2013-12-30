@@ -60,6 +60,9 @@ SWITCH_PROJECT_FORM = """\
 DEFAULT_PROJECT_NAME = 'default_project'
     
 class Version(ndb.Model):
+    ''' A single version of a web page.
+        This is taken directly from the html and cannot be modified
+        A Page may have multiple Versions as children'''
     time_added = ndb.DateTimeProperty(auto_now_add=True)
     creator = admins = ndb.UserProperty()
     version_id = ndb.IntegerProperty()
@@ -73,6 +76,7 @@ class Page(ndb.Model):
     # Todo: Images
     
 class Project(ndb.Model):
+    ''' Models a project. Pages are stored as children.'''
     name = ndb.StringProperty()
     admins = ndb.UserProperty(repeated=True)
     members = ndb.UserProperty(repeated=True)
@@ -81,38 +85,43 @@ class Project(ndb.Model):
 class MainPage(webapp2.RequestHandler):
     
     def create_project(self, project_name):
+        ''' Creates a new project, with the current user as admin & member'''
+        # Potential error cases:
         if not users.get_current_user():
             self.response.write("<p><h1>Not logged in.</h1></p><hr>")  
             return
         if Project.query(Project.name == project_name).fetch():
             self.response.write("<p><h1>Project already exists.</h1></p><hr>")  
             return
+        # Create the project itself.
         user = [users.get_current_user()]
         project = Project(
                 id=project_name, name=project_name, admins=user, members=user)
+        # Add to the database and return it.
         project.put()
         return project
         
     def add_page(self, keep_comments = False):
-        ''' Get project name, username, url and key '''
+        ''' Adds a page to the current project, via "get"'''
+        # Pre-prepare variables to simplify the construction itself.
         project_name = self.request.get('project_name',DEFAULT_PROJECT_NAME)
         key = ndb.Key("Project", project_name)
         user = users.get_current_user()
         url = self.request.get('url')
-        ''' Try to grab the page'''
+        # Try to grab the page. Return on any exception
         try:
             html = urllib.urlopen(url).read()
         except:
             self.response.write("<p><h1>Page not found.</h1></p><hr>")  
             return
-        ''' Make the page if it doesn't already exist'''
+        # Add the page to the database if it does not exist, otherwise get it.
         if not Page.query(Page.url == url, ancestor=key).fetch():
             # Make the page
             page = Page(id=url, added_by=user, url=url,parent=key)
             page.put()
         else:
             page = ndb.Key("Project", project_name, "Page", url).get()
-        ''' Add a new version at the current time '''
+        # Add a new version at the current time 
         vid = Version.query().count()
         version = Version(
                 parent=ndb.Key(Project, project_name,Page,page.url), id=vid)
@@ -123,12 +132,16 @@ class MainPage(webapp2.RequestHandler):
         return page
         
     def view_page(self):
+        ''' Views the stored HTML for the page. Images and css not included'''
+        # Start by grabbing useful variables.
         project_name = self.request.get('project_name', DEFAULT_PROJECT_NAME)
         url = self.request.get('url')    
+        # Try to get the page. Return if it is not found.
         page = ndb.Key("Project", project_name, "Page", url).get()
         if not page:
             self.response.write("<p><h1>Page not found.</h1></p><hr>")
             return False
+        # Grab the latest version of the page.
         latest = Version.query(
                 ancestor=ndb.Key("Project", project_name, "Page", page.url))
         latest = latest.order(-Version.time_added).fetch()
@@ -136,11 +149,15 @@ class MainPage(webapp2.RequestHandler):
         return
         
     def roll_back(self):
+        ''' Rolls back a page to the previous version. Requires admin access'''
+        # Get the parameters
         project_name = self.request.get('project_name', DEFAULT_PROJECT_NAME)
         url = self.request.get('url')
+        # Get all versions, sorted by time.
         latest = Version.query(
                 ancestor=ndb.Key("Project", project_name, "Page", url))
         latest = latest.order(-Version.time_added).fetch()
+        # If there is more than 1 version stored, delete the most recent.
         if len(latest) <= 1:
             self.response.write("<p><h1>Not enough versions found.</h1></p>")
             return
@@ -148,22 +165,25 @@ class MainPage(webapp2.RequestHandler):
                 "Version", latest[0].version_id).delete()
     
     def display_login(self):
-            self.response.write("<hr>")
-            if users.get_current_user():
-                self.response.write("<p>Logged in as ")
-                self.response.write(str(users.get_current_user()) + "</p>")
-                url = users.create_logout_url(self.request.uri)
-                url_linktext = 'Logout'
-            else:
-                url = users.create_login_url(self.request.uri)
-                url_linktext = 'Login'
-            self.response.write('<a href="%s">%s</a>'% (url, url_linktext))
+        ''' Simply draws the login form for the api '''
+        self.response.write("<hr>")
+        if users.get_current_user():
+            self.response.write("<p>Logged in as ")
+            self.response.write(str(users.get_current_user()) + "</p>")
+            url = users.create_logout_url(self.request.uri)
+            url_linktext = 'Logout'
+        else:
+            url = users.create_login_url(self.request.uri)
+            url_linktext = 'Login'
+        self.response.write('<a href="%s">%s</a>'% (url, url_linktext))
             
     def display_project(self, project_name, project):
-        ''' Print the page urls. '''
+        ''' Adds project details for the api '''
+        # Firstly find the saved pages.
         pages_query = Page.query(
             ancestor=ndb.Key("Project", project_name)).order(-Page.created)
-        pages = pages_query.fetch(10)
+        pages = pages_query.fetch()
+        # Write them if any are found.
         if pages:
             self.response.write(
                     "<p><h1>Pages for %s</h1></p>" % project_name)
@@ -180,10 +200,13 @@ class MainPage(webapp2.RequestHandler):
         self.response.write(ADD_PAGE_FORM % cgi.escape(project_name))
         
     def display_admin(self, project_name, project):
+        ''' Draws the admin and user access forms '''
         self.response.write(ADD_USER_FORM % cgi.escape(project_name))
         self.response.write(ACCESS_FORM % cgi.escape(project_name))
         
     def handle_commands(self, command, project_name):
+        ''' Handles any commands passed by http get. '''
+        # Project Selection Commands
         user = users.get_current_user()
         key = ndb.Key("Project", project_name)
         if command == 'Switch Project':
@@ -192,15 +215,7 @@ class MainPage(webapp2.RequestHandler):
             return
         if command == 'Create Project':
             return [self.create_project(project_name)]
-        if command == 'Delete Project':
-            if user not in ndb.Key("Project", project_name).admins:
-                self.response.write("<p><h1>Access denied..</h1></p>")
-            try:
-               key.delete()
-            except:
-                self.response.write("<p><h1>Project not found.</h1></p>")
-            return
-        ''' Project commands '''
+        # Project commands
         project = key.get()
         if user not in project.members and not project.public:          
             self.response.write("<p><h1>Access denied..</h1></p>")
@@ -219,6 +234,12 @@ class MainPage(webapp2.RequestHandler):
         if user not in project.admins:
             self.response.write("<p><h1>Access denied..</h1></p>")
             return
+        if command == 'Delete Project':
+            try:
+               key.delete()
+            except:
+                self.response.write("<p><h1>Project not found.</h1></p>")
+            return
         if self.request.get('command') == "Roll Back Page":
             self.roll_back()
             return
@@ -235,12 +256,14 @@ class MainPage(webapp2.RequestHandler):
             project.public = False
         if not self.request.get('user_name'):
             project.put()
+            return
         else:
             try:
                 user_name= users.User(self.request.get('user_name'))
             except:
                 self.response.write("<p><h1>User not recognised.</h1></p>")
                 return
+        # User access level commands.
         if self.request.get('command') == "Add Access":
             if user_name not in project.members:
                 project.members.append(user_name)
@@ -264,16 +287,17 @@ class MainPage(webapp2.RequestHandler):
         project.put()
 
     def get(self):
+        ''' Draws the main page, and handles any commands '''
         self.response.write('<html><body>')
         project_name= self.request.get('project_name',DEFAULT_PROJECT_NAME)
         project = None
         command = self.request.get('command', None)
-        '''Handle all the different get commands'''
+        # Handle all the different get commands'''
         if command:
             project = self.handle_commands(command, project_name)
             if project == False:
                 return
-        ''' Get the project details.'''
+        # Get the project details.'''
         if users.get_current_user():
             if not project:  
                 project = Project.query(Project.name == project_name).fetch(1)
@@ -290,7 +314,7 @@ class MainPage(webapp2.RequestHandler):
             # Project options.
             self.response.write(
                     SWITCH_PROJECT_FORM % cgi.escape(project_name))
-        '''Display project details'''
+        # Display project details'''
         self.display_login()
         self.response.write("</body></html>")
 
