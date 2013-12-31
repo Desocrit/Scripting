@@ -334,62 +334,63 @@ class MainPage(webapp2.RequestHandler):
         
     def handle_commands(self, command, project_name):
         ''' Handles any commands passed by http get. '''
+        command = command.replace("_", " ")
         # Project Selection Commands
         user = users.get_current_user()
         key = ndb.Key("Project", project_name)
-        if command == 'Switch Project':
+        if command == 'switch project':
             self.redirect('/?'+urllib.urlencode({'project_name':project_name}))
             self.status('success')
             self.project_to_json(key.get())
             return
-        if command == 'Create Project':
+        if command == 'create project':
             return [self.create_project(project_name)]
         # Project commands
         project = key.get()
         if user not in project.members and not project.public:          
             self.status("Access denied.")
             return
-        if command == "Add or Replace Page":
+        if command == "add or replace page":
             self.add_page(False)
             return
-        if command == "Update Page":
+        if command == "update page":
             self.add_page(True)
             return
-        if command == "View Page":
+        if command == "view page":
             if self.view_page(): # If page exists.
                 return False
             return
-        if command == "Page Details":
+        if command == "page details":
             if self.page_dump():
                 return False
             return
-        if command == "Annotate":
+        if command == "annotate":
             self.annotate()
             return
         # Admin commands
         if user not in project.admins:
             self.status("Access denied.")
             return
-        if command == 'Delete Project':
+        if command == 'delete project':
             try:
                key.delete()
                self.status('success')
             except:
                 self.status("Project not found.")
             return
-        if command == "Roll Back Page":
+        if command == "roll back page":
             self.roll_back()
             return
-        if command == "Delete Page":
+        if command == "delete page":
             try:
                 ndb.Key("Project", project_name, "Page",
                         self.request.get('url')).delete()
             except:
                 self.status("Page not found.")
             return
-        if command == "Make Public":
+        if command == "make public":
             project.public = True
-        if command == "Make Private":
+        if command == "make private":
             project.public = False
         if not self.request.get('user_name'):
             self.status('success')
@@ -402,20 +403,20 @@ class MainPage(webapp2.RequestHandler):
                 self.status("User not recognised.")
                 return
         # User access level commands.
-        if self.request.get('command') == "Add Access":
+        if self.request.get('command') == "add access":
             if user_name not in project.members:
                 project.members.append(user_name)
-        if self.request.get('command') == "Remove Access":
+        if self.request.get('command') == "remove access":
             if len(project.members) != 1:
                 if user_name in project.members:
                     project.members.remove(user_name)
             else:
                 self.status("Cannot remove final user from project.")
                 return
-        if self.request.get('command') == "Add Admin":
+        if self.request.get('command') == "add admin":
             if user_name not in project.admins:
                 project.admins.append(user_name)
-        if self.request.get('command') == "Remove Admin":
+        if self.request.get('command') == "remove admin":
             if len(project.admins) != 1:
                 if user_name in project.admins:
                     project.admins.remove(user_name)
@@ -436,7 +437,7 @@ class MainPage(webapp2.RequestHandler):
         command = self.request.get('command', None)
         # Handle all the different get commands'''
         if command:
-            project = self.handle_commands(command, project_name)
+            project = self.handle_commands(command.lower(), project_name)
             if project == False:
                 if self.output_type.lower() == 'json':
                     self.response.write(repr(self.json))
