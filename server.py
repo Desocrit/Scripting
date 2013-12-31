@@ -17,8 +17,10 @@ ADD_PAGE_FORM = """\
       <input name = "command" type="submit" value="Update Page">
       <br>
       <input name = "command" type="submit" value="Roll Back Page">
-      <input name = "command" type="submit" value="View Page">
       <input name = "command" type="submit" value="Delete Page">
+      <br>
+      <input name = "command" type="submit" value="View Page">
+      <input name = "command" type="submit" value="Page Details">
     </form>
     <hr>
 """
@@ -60,7 +62,20 @@ DEFAULT_OUTPUT_TYPE = "html"
 
 DEFAULT_PROJECT_NAME = 'default_project'
 
+class AnnotationVersion(ndb.Model):
+    ''' A version of an annotation.
+        This can be checked and updated in realtime. '''
+    time_added = ndb.DateTimeProperty(auto_now_add=True)
+    creator = admins = ndb.UserProperty()
+    av_id = ndb.IntegerProperty()
+    contents = ndb.StringProperty(indexed=False)
 
+class Annotation(ndb.Model):
+    ''' An annotation. Contents are stored as AnnotationVersions '''
+    creator = ndb.UserProperty()
+    element_id = ndb.StringProperty()
+    x_pos = ndb.IntegerProperty()
+    y_pos = ndb.IntegerProperty()
     
 class Version(ndb.Model):
     ''' A single version of a web page.
@@ -68,12 +83,12 @@ class Version(ndb.Model):
         A Page may have multiple Versions as children'''
     time_added = ndb.DateTimeProperty(auto_now_add=True)
     creator = admins = ndb.UserProperty()
-    version_id = ndb.IntegerProperty()
+    v_id = ndb.IntegerProperty()
     contents = ndb.StringProperty(indexed=False)
 
 class Page(ndb.Model):
     """Models an individual page, initiating user, url, and time added"""
-    added_by = ndb.UserProperty()
+    creator = ndb.UserProperty()
     url = ndb.StringProperty()
     created = ndb.DateTimeProperty(auto_now_add=True)
     # Todo: Images
@@ -88,8 +103,7 @@ class Project(ndb.Model):
 class MainPage(webapp2.RequestHandler):
     
     def status(self, message):
-        self.result = message
-        self.json['status'] = 'success'
+        self.json['status'] = message
         if self.output_type.lower() == "html" and message != 'success':
             self.response.write("<p><h1>"+message+"</h1></p><hr>")
             
@@ -99,21 +113,57 @@ class MainPage(webapp2.RequestHandler):
         self.json['admins'] = [str(user) for user in project.admins]
         self.json['members'] = [str(user) for user in project.members]
         pages = []
-        children = Page.query(ancestor=ndb.Key(Project, project.name)).fetch()
+        children = Page.query(ancestor=project.key).fetch()
         for child in children:
             page = {'url': str(child.url), 'date_created': str(child.created)}
-            page['added_by'] = str(child.added_by)
+            page['creator'] = str(child.creator)
             pages.append(page)
             versions = []
-            for v in Version.query(ancestor=ndb.Key(
-                    Project,project.name, Page,child.url)).fetch():
-                version = {'id': str(v.version_id)}
+            for v in Version.query(ancestor=child.key).fetch():
+                version = {'id': str(v.id)}
                 version['date_created'] = str(v.time_added)
                 version['creator'] = str(v.creator)
                 versions.append(version)
             page['versions'] = versions
         self.json['pages'] = pages
-                
+        
+    def page_to_json(self, project_name, page):
+        json = {'url': str(page.url), 'date_created': str(page.created)}
+        json['creator'] = str(page.creator) 
+        versions = []
+        for v in Version.query(ancestor=page.key).fetch():
+            version = {'id': str(v.v_id)}
+            version['date_created'] = str(v.time_added)
+            version['creator'] = str(v.creator)
+            annotations = []
+            for a in Annotation.query(ancestor=v.key).fetch():
+                annotation = {'creator': str(a.creator)}
+                annotation['x_pos'] = str(a.x_pos)
+                annotation['y_pos'] = str(a.y_pos)
+                vkey = ndb.Key(Project, project_name, Page,page.url, 
+                               Version, v.v_id, Annotation, a.element_id)
+                latest = AnnotationVersion.query(ancestor=vkey)
+                latest =latest.order(-AnnotationVersion.time_added).fetch(1)[0]
+                annotation['contents'] = latest.contents
+                annotations.append(annotation)
+            version['annotations'] = annotations
+            versions.append(version)
+        json['versions'] = versions
+        self.json = dict(self.json, **json)
+      
+    def page_dump(self):
+        project_name = self.request.get('project_name',DEFAULT_PROJECT_NAME)
+        url = self.request.get('url')
+        if not url:
+            self.status("Url not provided")
+        page = ndb.Key(Project, project_name, Page, url).get()
+        self.status('success') 
+        if self.output_type.lower() == 'json':
+            self.page_to_json(project_name, page)
+        else:
+            self.response.write("Feature unavailable")
+            return False
+        return True
             
     def create_project(self, project_name):
         ''' Creates a new project, with the current user as admin & member'''
@@ -150,17 +200,14 @@ class MainPage(webapp2.RequestHandler):
         # Add the page to the database if it does not exist, otherwise get it.
         if not Page.query(Page.url == url, ancestor=key).fetch():
             # Make the page
-            page = Page(id=url, added_by=user, url=url,parent=key)
+            page = Page(id=url, creator=user, url=url,parent=key)
             page.put()
         else:
             page = ndb.Key("Project", project_name, "Page", url).get()
         # Add a new version at the current time 
         vid = Version.query().count()
-        version = Version(
-                parent=ndb.Key(Project, project_name,Page,page.url), id=vid)
+        version = Version(parent=page.key, id=vid, v_id=vid, creator=user)
         version.contents = sub(r'(?i)<script>.*?</script>{1}?', "", html)
-        version.version_id = vid
-        version.creator = user
         version.put()
         self.status('success')
         return page
@@ -177,7 +224,7 @@ class MainPage(webapp2.RequestHandler):
             return False
         # Grab the latest version of the page.
         latest = Version.query(
-                ancestor=ndb.Key("Project", project_name, "Page", page.url))
+                ancestor=page.key)
         latest = latest.order(-Version.time_added).fetch()
         self.response.write(latest[0].contents)
         return
@@ -195,9 +242,55 @@ class MainPage(webapp2.RequestHandler):
         if len(latest) <= 1:
             self.status("Not enough versions found.")
             return
-        ndb.Key("Project", project_name, "Page", url,
-                "Version", latest[0].version_id).delete()
+        latest[0].key.delete()
         self.status('success')
+        
+    def annotate(self):
+        ''' Annotates a position in the page. Updates existing annotation
+            if the annotation already exists. '''
+        message = self.request.get('message')
+        element_id = self.request.get('element_id')
+        x_pos, y_pos = self.request.get('x_pos'), self.request.get('y_pos')
+        try:
+            x_pos = int(x_pos)
+            y_pos = int(y_pos)
+        except:
+            self.status("Position arguments cannot be converted to integers.")
+            return
+        if not x_pos or not y_pos or not message or not element_id:
+            self.status('Missing required parameters. Please update request.')
+            return
+        # Find the latest version of the url.
+        project_name = self.request.get('project_name', DEFAULT_PROJECT_NAME)
+        url = self.request.get('url')
+        key = ndb.Key("Project", project_name, "Page", url)
+        if not key.get():
+            self.status("Page not found")
+            return
+        latest = Version.query(ancestor=key)
+        latest = latest.order(-Version.time_added).fetch(1)[0]
+        annotation = Annotation.query(
+                                    Annotation.x_pos == x_pos, 
+                                    Annotation.y_pos == y_pos,
+                                    ancestor=latest.key
+                                    ).fetch()
+        if not annotation:
+            # Create and attach an annotation.
+            user = users.get_current_user()
+            key = latest.key
+            annotation = Annotation(id=element_id, element_id=element_id,
+                                    parent=key, creator=user,
+                                    x_pos=x_pos, y_pos=y_pos)   
+            annotation.put() 
+        key = annotation.key
+        av_id = AnnotationVersion.query().count()
+        version = AnnotationVersion(parent=key, id=av_id,contents=str(message))
+        version.av_id = av_id
+        version.creator = users.get_current_user()
+        version.put()
+        self.status('success')
+    
+    # HTML Viewing methods
     
     def display_login(self):
         ''' Simply draws the login form for the api '''
@@ -262,11 +355,18 @@ class MainPage(webapp2.RequestHandler):
         if command == "Update Page":
             self.add_page(True)
             return
-        if command== "View Page":
+        if command == "View Page":
             if self.view_page(): # If page exists.
                 return False
             return
-        ''' Admin commands '''
+        if command == "Page Details":
+            if self.page_dump():
+                return False
+            return
+        if command == "Annotate":
+            self.annotate()
+            return
+        # Admin commands
         if user not in project.admins:
             self.status("Access denied.")
             return
@@ -327,7 +427,6 @@ class MainPage(webapp2.RequestHandler):
 
     def get(self):
         ''' Draws the main page, and handles any commands '''
-        self.result = None
         self.output_type = self.request.get('output_type', DEFAULT_OUTPUT_TYPE)
         self.json = {}
         if self.output_type.lower() == "html":
@@ -339,23 +438,23 @@ class MainPage(webapp2.RequestHandler):
         if command:
             project = self.handle_commands(command, project_name)
             if project == False:
-                self.response.write(repr(self.json))
+                if self.output_type.lower() == 'json':
+                    self.response.write(repr(self.json))
                 return
         # Get the project details.'''
         if users.get_current_user():
             if not project:  
                 project = Project.query(Project.name == project_name).fetch(1)
-            if project != [] and project[0] != None:
+            if project != [] and project[0] is not None:
                 if users.get_current_user() in project[0].members \
                         or project[0].public:
                     if self.output_type.lower() == "html":
                         self.display_project(project_name, project[0])
                         if users.get_current_user() in project[0].admins:
                             self.display_admin(project_name)
-                    else:
-                        if not self.result:
-                            self.status('success')
-                            self.project_to_json(project[0])
+                    elif 'status' not in self.json.keys():
+                        self.status('success')
+                        self.project_to_json(project[0])
                 else:
                     self.status("Access denied.")
             else:

@@ -10,6 +10,12 @@ indexes:
 # automatically uploaded to the admin console when you next deploy
 # your application using appcfg.py.
 
+- kind: AnnotationVersion
+  ancestor: yes
+  properties:
+  - name: time_added
+    direction: desc
+
 - kind: Page
   ancestor: yes
   properties:
