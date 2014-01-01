@@ -1,6 +1,6 @@
 #hdr
 {
-	position: absolute;
+	position: fixed;
 	background-color: #FFDDDD;
 	width: 100%;
 	height: 110px;
@@ -10,7 +10,7 @@
 
 #ftr
 {
-	position: absolute;
+	position: fixed;
 	background-color: #FFDDDD;
 	width: 100%;
 	padding: 5px;
@@ -29,7 +29,6 @@
 
 #navbutton
 {
-	
 	position: absolute;
 	right: 5px;
 	top: 75px;
