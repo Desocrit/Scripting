@@ -247,7 +247,7 @@ class MainPage(webapp2.RequestHandler):
             return
             
         hash = hashlib.md5(contents).hexdigest()
-        latest = Cached_CSS.query(url=url)
+        latest = Cached_CSS.query(Cached_CSS.url==url)
         latest = latest.order(-Cached_CSS.time_added).fetch()
         
         needs_create = False
