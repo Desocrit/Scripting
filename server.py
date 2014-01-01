@@ -320,6 +320,18 @@ class MainPage(webapp2.RequestHandler):
         latest[0].key.delete()
         self.status('success')
         
+    def delete_version(self, version):
+        for annotation in Annotation.query(ancestor=version).fetch():
+            for av in AnnotationVersion.query(ancestor=annotation).fetch():
+                av.key.delete()
+            annotation.key.delete()
+        version.delete()
+        
+    def delete_page(self, page):
+        for version in Version.query(ancestor=page).fetch():
+            self.delete_version(version.key)
+        page.delete()
+        
     def annotate(self):
         ''' Annotates a position in the page. Updates existing annotation
             if the annotation already exists. '''
@@ -448,8 +460,10 @@ class MainPage(webapp2.RequestHandler):
             return
         if command == 'delete project':
             try:
-               key.delete()
-               self.status('success')
+                for page in Page.query(ancestor=key).fetch():
+                    self.delete_page(page.key)
+                key.delete()
+                self.status('success')
             except:
                 self.status("Project not found.")
             return
@@ -458,8 +472,8 @@ class MainPage(webapp2.RequestHandler):
             return
         if command == "delete page":
             try:
-                ndb.Key("Project", project_name, "Page",
-                        self.request.get('url')).delete()
+                self.delete_page(ndb.Key("Project", project_name,
+                                         "Page", self.request.get('url')))
             except:
                 self.status("Page not found.")
             return
