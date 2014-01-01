@@ -7,6 +7,7 @@ from google.appengine.ext import ndb
 from re import sub
 
 import webapp2
+import re
 
 ADD_PAGE_FORM = """\
      <form>
@@ -101,6 +102,43 @@ class Project(ndb.Model):
     public = ndb.BooleanProperty(default=False)
 
 class MainPage(webapp2.RequestHandler):
+    
+    def gethref(self, url):
+        href = re.search("href.*=.*(\"|').*(\"|')", url).group(0)
+        return re.search("(\"|').*(\"|')", href).group(0)[1:-1]
+
+    def getroot(self, url):
+        return re.match("https?://[^/]*/", url).group()
+    
+    def getprotocol(self, url):
+        return re.match("[^/]*://", url).group()
+    
+    def getallhrefs(self, html):
+        return re.findall(".*href.*", html)
+    
+    def completepath(self, url, baseurl):
+        if url[0:1] == "//":
+            url = getprotocol(baseurl) + url
+        elif url[0] == '/':
+            url = getroot(baseurl) + url
+        elif re.match("https?://", url):
+            pass
+        else:
+            url = baseurl + url
+        return url
+           
+    def getallcss(self, hrefs, baseurl):
+        css = []
+        for href in hrefs:
+            if re.search("link rel.*=.*stylesheet", href):
+                css.append(completepath(gethref(href), baseurl))
+        return css
+    
+    def getbaseurl(self, url, html):
+        search = re.search("<.*base href.*=.*", html)
+        if search:
+            url = gethref(search.group())
+        return url
     
     def status(self, message):
         self.json['status'] = message
