@@ -107,6 +107,7 @@ class Cached_CSS(ndb.Model):
     v_id = ndb.IntegerProperty()
     contents = ndb.StringProperty(indexed=False)
     url = ndb.StringProperty()
+    proxy_url = ndb.StringProperty()
 
 
 class CSS(ndb.Model):
@@ -140,11 +141,11 @@ class MainPage(webapp2.RequestHandler):
             url = baseurl + url
         return url
            
-    def getallcssurls(self, hrefs, baseurl):
+    def getallcssurls(self, hrefs):
         css = []
         for href in hrefs:
             if re.search("link rel.*=.*stylesheet", href):
-                css.append(self.completepath(self.gethref(href), baseurl))
+                css.append(self.gethref(href))
         return css
     
     def getbaseurl(self, url, html):
@@ -255,17 +256,19 @@ class MainPage(webapp2.RequestHandler):
         if len(latest) > 0 and hash == latest[0].hash:
             version = latest[0]
             vid = version.v_id
+            proxy_url = version.proxy_url
         else:
             needs_create = True
           
         if needs_create:
             vid = Cached_CSS.query().count()
-            version = Cached_CSS(id=vid, v_id=vid, creator=user, hash=hash, url=url)
+            proxy_url = re.match("https?://[^/]*/", self.request.url).group() + "css?id=" + str(vid)
+            version = Cached_CSS(id=vid, v_id=vid, creator=user, hash=hash, url=url, proxy_url=proxy_url)
             version.contents = contents
             version.put()
             
         self.status('success')
-        return vid
+        return (vid, proxy_url)
         
     def add_page(self, keep_comments = False):
         ''' Adds a page to the current project, via "get"'''
@@ -287,17 +290,24 @@ class MainPage(webapp2.RequestHandler):
             page.put()
         else:
             page = ndb.Key("Project", project_name, "Page", url).get()
+        
+        css_ids = []
+        hrefs = re.findall(".*href.*", html)
+        baseurl = self.getbaseurl(url, html)
+        cssurls = self.getallcssurls(hrefs)
+        for cssurl in cssurls:
+            (css_id, proxy_url) = self.add_css(self.completepath(cssurl, baseurl), keep_comments)
+            css_ids.append(css_id)
+            html = sub(cssurl, proxy_url, html)
+        
         # Add a new version at the current time 
         vid = Version.query().count()
         version = Version(parent=page.key, id=vid, v_id=vid, creator=user)
         version.contents = sub(r'(?i)<script>.*?</script>{1}?', "", html)
         version.put()
         
-        hrefs = re.findall(".*href.*", html)
-        baseurl = self.getbaseurl(url, html)
-        cssurls = self.getallcssurls(hrefs, baseurl)
-        for cssurl in cssurls:
-            css = CSS(id=cssurl, creator=user, url=cssurl, css_id=self.add_css(cssurl, keep_comments), parent=version.key)
+        for css_id in css_ids:
+            css = CSS(id=cssurl, creator=user, url=cssurl, css_id=css_id, parent=version.key)
             css.put()
         
         self.status('success')
@@ -576,6 +586,13 @@ class MainPage(webapp2.RequestHandler):
         if self.output_type.lower() == 'json':
             self.response.write(repr(self.json))
 
+class CSSPage(webapp2.RequestHandler):
+    def get(self):
+        css_id = int(self.request.get('id').encode('utf-8'))
+        css = Cached_CSS.query(Cached_CSS.v_id==css_id).fetch()
+        self.response.write(css[0].contents)
+
 application = webapp2.WSGIApplication([
-    ('/', MainPage)
+    ('/', MainPage),
+    ('/css', CSSPage)
 ], debug=True)
