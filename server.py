@@ -72,13 +72,15 @@ class AnnotationVersion(ndb.Model):
     av_id = ndb.IntegerProperty()
     contents = ndb.StringProperty(indexed=False)
 
+
 class Annotation(ndb.Model):
     ''' An annotation. Contents are stored as AnnotationVersions '''
     creator = ndb.UserProperty()
     element_id = ndb.StringProperty()
     x_pos = ndb.IntegerProperty()
     y_pos = ndb.IntegerProperty()
-    
+
+
 class Version(ndb.Model):
     ''' A single version of a web page.
         This is taken directly from the html and cannot be modified
@@ -88,6 +90,7 @@ class Version(ndb.Model):
     v_id = ndb.IntegerProperty()
     contents = ndb.StringProperty(indexed=False)
 
+
 class Page(ndb.Model):
     """Models an individual page, initiating user, url, and time added"""
     creator = ndb.UserProperty()
@@ -95,25 +98,23 @@ class Page(ndb.Model):
     created = ndb.DateTimeProperty(auto_now_add=True)
     # Todo: Images
 
-class CSSVersion(ndb.Model):
-    ''' A single version of a web page.
-        This is taken directly from the html and cannot be modified
-        A Page may have multiple Versions as children'''
+
+class Cached_CSS(ndb.Model):
+    ''' A single version of a css file.'''
     time_added = ndb.DateTimeProperty(auto_now_add=True)
     hash = ndb.StringProperty()
     creator = admins = ndb.UserProperty()
     v_id = ndb.IntegerProperty()
     contents = ndb.StringProperty(indexed=False)
-
-class Cached_CSS(ndb.Model):
-    creator = ndb.UserProperty()
     url = ndb.StringProperty()
+
 
 class CSS(ndb.Model):
     creator = ndb.UserProperty()
     url = ndb.StringProperty()
     css_id = ndb.IntegerProperty()
-    
+
+
 class Project(ndb.Model):
     ''' Models a project. Pages are stored as children.'''
     name = ndb.StringProperty()
@@ -121,26 +122,18 @@ class Project(ndb.Model):
     members = ndb.UserProperty(repeated=True)
     public = ndb.BooleanProperty(default=False)
 
+
 class MainPage(webapp2.RequestHandler):
     
     def gethref(self, url):
         href = re.search("href.*=.*(\"|').*(\"|')", url).group(0)
         return re.search("(\"|').*(\"|')", href).group(0)[1:-1]
-
-    def getroot(self, url):
-        return re.match("https?://[^/]*/", url).group()
-    
-    def getprotocol(self, url):
-        return re.match("[^/]*://", url).group()
-    
-    def getallhrefs(self, html):
-        return re.findall(".*href.*", html)
     
     def completepath(self, url, baseurl):
         if url[0:1] == "//":
-            url = self.getprotocol(baseurl) + url
+            url = re.match("[^/]*://", baseurl).group() + url
         elif url[0] == '/':
-            url = self.getroot(baseurl) + url
+            url = re.match("https?://[^/]*/", baseurl).group() + url
         elif re.match("https?://", url):
             pass
         else:
@@ -252,17 +245,10 @@ class MainPage(webapp2.RequestHandler):
         except:
             self.status("CSS not found.")  
             return
-        # Add the page to the database if it does not exist, otherwise get it.
-        if not Cached_CSS.query(Cached_CSS.url == url).fetch():
-            # Make the page
-            css = Cached_CSS(id=url, creator=user, url=url)
-            css.put()
-        else:
-            css = ndb.Key("Cached_CSS", url).get()
             
         hash = hashlib.md5(contents).hexdigest()
-        latest = CSSVersion.query(ancestor=ndb.Key("Cached_CSS", url))
-        latest = latest.order(-CSSVersion.time_added).fetch()
+        latest = Cached_CSS.query(url=url)
+        latest = latest.order(-Cached_CSS.time_added).fetch()
         
         needs_create = False
         
@@ -273,8 +259,8 @@ class MainPage(webapp2.RequestHandler):
             needs_create = True
           
         if needs_create:
-            vid = CSSVersion.query().count()
-            version = CSSVersion(parent=css.key, id=vid, v_id=vid, creator=user, hash=hash)
+            vid = Cached_CSS.query().count()
+            version = Cached_CSS(id=vid, v_id=vid, creator=user, hash=hash, url=url)
             version.contents = contents
             version.put()
             
@@ -307,7 +293,7 @@ class MainPage(webapp2.RequestHandler):
         version.contents = sub(r'(?i)<script>.*?</script>{1}?', "", html)
         version.put()
         
-        hrefs = self.getallhrefs(html)
+        hrefs = re.findall(".*href.*", html)
         baseurl = self.getbaseurl(url, html)
         cssurls = self.getallcssurls(hrefs, baseurl)
         for cssurl in cssurls:
