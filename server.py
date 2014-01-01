@@ -94,6 +94,12 @@ class Page(ndb.Model):
     created = ndb.DateTimeProperty(auto_now_add=True)
     # Todo: Images
     
+class CSS(ndb.Model):
+    """Models an individual css page, initiating user, url, and time added"""
+    creator = ndb.UserProperty()
+    url = ndb.StringProperty()
+    created = ndb.DateTimeProperty(auto_now_add=True)
+    
 class Project(ndb.Model):
     ''' Models a project. Pages are stored as children.'''
     name = ndb.StringProperty()
@@ -118,28 +124,28 @@ class MainPage(webapp2.RequestHandler):
     
     def completepath(self, url, baseurl):
         if url[0:1] == "//":
-            url = getprotocol(baseurl) + url
+            url = self.getprotocol(baseurl) + url
         elif url[0] == '/':
-            url = getroot(baseurl) + url
+            url = self.getroot(baseurl) + url
         elif re.match("https?://", url):
             pass
         else:
             url = baseurl + url
         return url
            
-    def getallcss(self, hrefs, baseurl):
+    def getallcssurls(self, hrefs, baseurl):
         css = []
         for href in hrefs:
             if re.search("link rel.*=.*stylesheet", href):
-                css.append(completepath(gethref(href), baseurl))
+                css.append(self.completepath(self.gethref(href), baseurl))
         return css
     
     def getbaseurl(self, url, html):
         search = re.search("<.*base href.*=.*", html)
         if search:
-            url = gethref(search.group())
+            url = self.gethref(search.group())
         return url
-    
+       
     def status(self, message):
         self.json['status'] = message
         if self.output_type.lower() == "html" and message != 'success':
@@ -221,6 +227,32 @@ class MainPage(webapp2.RequestHandler):
         self.status('success')
         self.project_to_json(project)
         return project
+
+    def add_css(self, url, keep_comments = False):
+        ''' Adds a css page to the current project, via "get"'''
+        # Pre-prepare variables to simplify the construction itself.
+        project_name = self.request.get('project_name',DEFAULT_PROJECT_NAME)
+        key = ndb.Key("Project", project_name)
+        user = users.get_current_user()
+        # Try to grab the page. Return on any exception
+        try:
+            html = urllib.urlopen(url).read()
+        except:
+            self.status("CSS not found.")  
+            return
+        # Add the page to the database if it does not exist, otherwise get it.
+        if not CSS.query(CSS.url == url, ancestor=key).fetch():
+            # Make the page
+            css = CSS(id=url, creator=user, url=url,parent=key)
+            css.put()
+        else:
+            css = ndb.Key("Project", project_name, "CSS", url).get()
+        # Add a new version at the current time 
+        vid = Version.query().count()
+        version = Version(parent=css.key, id=vid, v_id=vid, creator=user)
+        version.put()
+        self.status('success')
+        return css
         
     def add_page(self, keep_comments = False):
         ''' Adds a page to the current project, via "get"'''
@@ -232,6 +264,11 @@ class MainPage(webapp2.RequestHandler):
         # Try to grab the page. Return on any exception
         try:
             html = urllib.urlopen(url).read()
+            hrefs = self.getallhrefs(html)
+            baseurl = self.getbaseurl(url, html)
+            cssurls = self.getallcssurls(hrefs, baseurl)
+            for cssurl in cssurls:
+                self.add_css(cssurl, keep_comments) 
         except:
             self.status("Page not found.")  
             return
