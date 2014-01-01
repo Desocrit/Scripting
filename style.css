@@ -29,13 +29,11 @@
 
 #navbutton
 {
+	
 	position: absolute;
 	right: 5px;
 	top: 75px;
 	padding: 5px;
-	background-color: #DDFFDD;
-	border: 1px solid;
-	border-radius: 15px;
 }
 
 #navigation
