@@ -8,6 +8,7 @@ from re import sub
 
 import webapp2
 import re
+import hashlib
 
 ADD_PAGE_FORM = """\
      <form>
@@ -93,12 +94,25 @@ class Page(ndb.Model):
     url = ndb.StringProperty()
     created = ndb.DateTimeProperty(auto_now_add=True)
     # Todo: Images
-    
-class CSS(ndb.Model):
-    """Models an individual css page, initiating user, url, and time added"""
+
+class CSSVersion(ndb.Model):
+    ''' A single version of a web page.
+        This is taken directly from the html and cannot be modified
+        A Page may have multiple Versions as children'''
+    time_added = ndb.DateTimeProperty(auto_now_add=True)
+    hash = ndb.StringProperty()
+    creator = admins = ndb.UserProperty()
+    v_id = ndb.IntegerProperty()
+    contents = ndb.StringProperty(indexed=False)
+
+class Cached_CSS(ndb.Model):
     creator = ndb.UserProperty()
     url = ndb.StringProperty()
-    created = ndb.DateTimeProperty(auto_now_add=True)
+
+class CSS(ndb.Model):
+    creator = ndb.UserProperty()
+    url = ndb.StringProperty()
+    css_id = ndb.IntegerProperty()
     
 class Project(ndb.Model):
     ''' Models a project. Pages are stored as children.'''
@@ -231,28 +245,42 @@ class MainPage(webapp2.RequestHandler):
     def add_css(self, url, keep_comments = False):
         ''' Adds a css page to the current project, via "get"'''
         # Pre-prepare variables to simplify the construction itself.
-        project_name = self.request.get('project_name',DEFAULT_PROJECT_NAME)
-        key = ndb.Key("Project", project_name)
         user = users.get_current_user()
         # Try to grab the page. Return on any exception
         try:
-            html = urllib.urlopen(url).read()
+            contents = urllib.urlopen(url).read()
         except:
             self.status("CSS not found.")  
             return
         # Add the page to the database if it does not exist, otherwise get it.
-        if not CSS.query(CSS.url == url, ancestor=key).fetch():
+        if not Cached_CSS.query(Cached_CSS.url == url).fetch():
             # Make the page
-            css = CSS(id=url, creator=user, url=url,parent=key)
+            css = Cached_CSS(id=url, creator=user, url=url)
             css.put()
         else:
-            css = ndb.Key("Project", project_name, "CSS", url).get()
-        # Add a new version at the current time 
-        vid = Version.query().count()
-        version = Version(parent=css.key, id=vid, v_id=vid, creator=user)
-        version.put()
+            css = ndb.Key("Cached_CSS", url).get()
+            
+        hash = hashlib.md5(contents).hexdigest()
+        latest = CSSVersion.query(ancestor=ndb.Key("Cached_CSS", url))
+        latest = latest.order(-CSSVersion.time_added).fetch()
+        
+        needs_create = False
+        
+        if len(latest) > 0 and hash == latest[0].hash:
+            version = latest[0]
+            vid = version.v_id
+        else:
+            needs_create = True
+          
+        if needs_create:
+            # Add a new version at the current time 
+            vid = CSSVersion.query().count()
+            version = CSSVersion(parent=css.key, id=vid, v_id=vid, creator=user, hash=hash)
+            version.contents = contents
+            version.put()
+            
         self.status('success')
-        return css
+        return vid
         
     def add_page(self, keep_comments = False):
         ''' Adds a page to the current project, via "get"'''
@@ -264,11 +292,6 @@ class MainPage(webapp2.RequestHandler):
         # Try to grab the page. Return on any exception
         try:
             html = urllib.urlopen(url).read()
-            hrefs = self.getallhrefs(html)
-            baseurl = self.getbaseurl(url, html)
-            cssurls = self.getallcssurls(hrefs, baseurl)
-            for cssurl in cssurls:
-                self.add_css(cssurl, keep_comments) 
         except:
             self.status("Page not found.")  
             return
@@ -284,6 +307,14 @@ class MainPage(webapp2.RequestHandler):
         version = Version(parent=page.key, id=vid, v_id=vid, creator=user)
         version.contents = sub(r'(?i)<script>.*?</script>{1}?', "", html)
         version.put()
+        
+        hrefs = self.getallhrefs(html)
+        baseurl = self.getbaseurl(url, html)
+        cssurls = self.getallcssurls(hrefs, baseurl)
+        for cssurl in cssurls:
+            css = CSS(id=cssurl, creator=user, url=cssurl, css_id=self.add_css(cssurl, keep_comments), parent=version.key)
+            css.put()
+        
         self.status('success')
         return page
         
@@ -319,18 +350,6 @@ class MainPage(webapp2.RequestHandler):
             return
         latest[0].key.delete()
         self.status('success')
-        
-    def delete_version(self, version):
-        for annotation in Annotation.query(ancestor=version).fetch():
-            for av in AnnotationVersion.query(ancestor=annotation).fetch():
-                av.key.delete()
-            annotation.key.delete()
-        version.delete()
-        
-    def delete_page(self, page):
-        for version in Version.query(ancestor=page).fetch():
-            self.delete_version(version.key)
-        page.delete()
         
     def annotate(self):
         ''' Annotates a position in the page. Updates existing annotation
@@ -460,10 +479,8 @@ class MainPage(webapp2.RequestHandler):
             return
         if command == 'delete project':
             try:
-                for page in Page.query(ancestor=key).fetch():
-                    self.delete_page(page.key)
-                key.delete()
-                self.status('success')
+               key.delete()
+               self.status('success')
             except:
                 self.status("Project not found.")
             return
@@ -472,8 +489,8 @@ class MainPage(webapp2.RequestHandler):
             return
         if command == "delete page":
             try:
-                self.delete_page(ndb.Key("Project", project_name,
-                                         "Page", self.request.get('url')))
+                ndb.Key("Project", project_name, "Page",
+                        self.request.get('url')).delete()
             except:
                 self.status("Page not found.")
             return
