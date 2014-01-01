@@ -273,7 +273,6 @@ class MainPage(webapp2.RequestHandler):
             needs_create = True
           
         if needs_create:
-            # Add a new version at the current time 
             vid = CSSVersion.query().count()
             version = CSSVersion(parent=css.key, id=vid, v_id=vid, creator=user, hash=hash)
             version.contents = contents
