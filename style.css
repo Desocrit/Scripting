@@ -20,6 +20,7 @@
 
 .menuitem
 {
+	cursor: pointer;
 	padding: 5px;
 	background-color: #DDFFDD;
 	border: 1px solid;
@@ -46,7 +47,7 @@
 	right: 0px;
 	#text-align: right;
 	top: 140px;
-	max-width: 15%;
+	max-width: 200px;
 	height: 400px;
 	overflow:auto;
 }
