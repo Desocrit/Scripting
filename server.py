@@ -127,14 +127,14 @@ class Project(ndb.Model):
 class MainPage(webapp2.RequestHandler):
     
     def gethref(self, url):
-        href = re.search("href.*=.*(\"|').*(\"|')", url).group(0)
-        return re.search("(\"|').*(\"|')", href).group(0)[1:-1]
+        href = re.search("href.*=.*(\"|')[^\"']*(\"|')", url).group(0)
+        return re.search("(\"|')[^\"']*(\"|')", href).group(0)[1:-1]
     
     def completepath(self, url, baseurl):
-        if url[0:1] == "//":
-            url = re.match("[^/]*://", baseurl).group() + url
+        if url[0:2] == "//":
+            url = re.match("[^/]*://", baseurl).group() + url[2:]
         elif url[0] == '/':
-            url = re.match("https?://[^/]*/", baseurl).group() + url
+            url = re.match("https?://[^/]*/", baseurl).group() + url[1:]
         elif re.match("https?://", url):
             pass
         else:
@@ -144,7 +144,7 @@ class MainPage(webapp2.RequestHandler):
     def getallcssurls(self, hrefs):
         css = []
         for href in hrefs:
-            if re.search("link rel.*=.*stylesheet", href):
+            if re.search("rel.*=.*stylesheet", href):
                 css.append(self.gethref(href))
         return css
     
@@ -298,7 +298,7 @@ class MainPage(webapp2.RequestHandler):
         for cssurl in cssurls:
             (css_id, proxy_url) = self.add_css(self.completepath(cssurl, baseurl), keep_comments)
             css_ids.append(css_id)
-            html = sub(cssurl, proxy_url, html)
+            html = sub(re.escape(cssurl), proxy_url, html)
         
         # Add a new version at the current time 
         vid = Version.query().count()
