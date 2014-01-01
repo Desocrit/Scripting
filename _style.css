@@ -1,0 +1,51 @@
+
+header
+{
+    height: 200px;
+}
+
+#full_page
+{
+    margin-bottom: 0;
+}
+
+/* SIDE BAR */
+    aside
+    {
+        display: inline-block;
+        height: 100%;
+        width: 300px;
+    }
+
+    aside div
+    {
+        height: 25px;
+        cursor: pointer;
+        font-weight: bold;
+    }
+
+/* MAIN AREA */
+    #main
+    {
+        display: inline-block;
+        height: 100%;
+        margin: 0;
+    }
+
+    /* URL BAR */
+        #url_holder
+        {
+            height: 40px;
+        }
+
+        #url
+        {
+            display: block;
+        }
+
+    /* PAGE */
+        #page_holder
+        {
+            display: block;
+            margin: 0px;
+        }

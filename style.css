@@ -1,51 +1,91 @@
-
-header
+#hdr
 {
-    height: 200px;
+	position: absolute;
+	background-color: #FFDDDD;
+	width: 100%;
+	height: 110px;
+	top: 0px;
+	left: 0px;
 }
 
-#full_page
+#ftr
 {
-    margin-bottom: 0;
+	position: absolute;
+	background-color: #FFDDDD;
+	width: 100%;
+	padding: 5px;
+	bottom: 0px;
+	left: 0px;
 }
 
-/* SIDE BAR */
-    aside
-    {
-        display: inline-block;
-        height: 100%;
-        width: 300px;
-    }
+.menuitem
+{
+	padding: 5px;
+	background-color: #DDFFDD;
+	border: 1px solid;
+	border-radius: 15px;
+}
 
-    aside div
-    {
-        height: 25px;
-        cursor: pointer;
-        font-weight: bold;
-    }
+#navbutton
+{
+	position: absolute;
+	right: 5px;
+	top: 75px;
+	padding: 5px;
+	background-color: #DDFFDD;
+	border: 1px solid;
+	border-radius: 15px;
+}
 
-/* MAIN AREA */
-    #main
-    {
-        display: inline-block;
-        height: 100%;
-        margin: 0;
-    }
+#navigation
+{
+	background-color: #DDDDFF;
+	border: 3px solid #606018;
+	padding: 5px;
+	position: fixed;
+	right: 0px;
+	#text-align: right;
+	top: 140px;
+	max-width: 15%;
+	height: 400px;
+	overflow:auto;
+}
 
-    /* URL BAR */
-        #url_holder
-        {
-            height: 40px;
-        }
+#contentcontainer
+{
+	position:absolute;
+	top: 0px;
+	left: 0px;
+	margin-top: 110px;
+	height: 80%;
+	width: 100%;
+}
 
-        #url
-        {
-            display: block;
-        }
+#content
+{
+	position:absolute;
+	left: 0px;
+	background-color: #FFDDFF;
+	height: 100%;
+	width: 100%;
+}
 
-    /* PAGE */
-        #page_holder
-        {
-            display: block;
-            margin: 0px;
-        }
+#page_holder
+{
+	position:absolute;
+	left: 0px;
+	width: 100%;
+	height: 100%;
+	border: 0px solid #606018;
+}
+
+#navlist
+{
+	word-wrap:break-word;
+}
+
+.navitem
+{
+	color: red;
+	word-wrap:break-word;
+}
