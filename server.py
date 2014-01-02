@@ -103,9 +103,8 @@ class Page(ndb.Model):
 
 class CSS(ndb.Model):
     ''' A cached css file.
-        Hash is saved to avoid repetition. '''
+        Hash is saved to save memory space. '''
     hash = ndb.StringProperty()
-    css_id = ndb.IntegerProperty()
     contents = ndb.StringProperty(indexed=False)
     pages_using = ndb.IntegerProperty(default=1)
 
@@ -242,17 +241,17 @@ class MainPage(webapp2.RequestHandler):
         hash = md5(css).hexdigest()
         existing_css = CSS.query(CSS.hash == hash).fetch()
         if existing_css:
-            css_id = existing_css[0].css_id
+            cached_css = existing_css[0]
+            cached_css.pages_using += 1
         else:
-            css_id = CSS.query().count()
-            cached_css = CSS(id=css_id, css_id=css_id, contents=css, hash=hash)
+            cached_css = CSS(contents=css, hash=hash)
+            cached_css.put()
             # Update the html
             proxy_url = re.match("https?://[^/]*/", self.request.url).group()
-            proxy_url += "css?id=" + str(css_id)
+            proxy_url += "css?id=" + str(cached_css.key.id())
             self.html = sub(re.escape(url), proxy_url, self.html)
-            cached_css.put()
         self.status('success')
-        return css_id
+        return cached_css.key.id()
 
     def add_page(self, keep_comments=False):
         ''' Adds a page to the current project. '''
@@ -331,9 +330,15 @@ class MainPage(webapp2.RequestHandler):
             for av in AnnotationVersion.query(ancestor=annotation).fetch():
                 av.key.delete()
             annotation.key.delete()
+        for css_id in version.css_ids:
+            css = ndb.Key(CSS, css_id)
+            css.get().pages_using -= 1
+            if css.get().pages_using == 0:
+                css.delete()
         version.delete()
 
     def delete_page(self, page):
+        self.response.write(page)
         for version in Version.query(ancestor=page).fetch():
             self.delete_version(version.key)
         page.delete()
@@ -438,6 +443,8 @@ class MainPage(webapp2.RequestHandler):
             return [self.create_project(project_name)]
         # Project commands
         project = key.get()
+        if not project:
+            return
         if user not in project.members and not project.public:
             return self.status("Access denied.")
         if command == "add or replace page":
@@ -555,9 +562,12 @@ class MainPage(webapp2.RequestHandler):
 
 class CSSPage(webapp2.RequestHandler):
     def get(self):
-        css_id = int(self.request.get('id').encode('utf-8'))
-        css = CSS.query(CSS.v_id == css_id).fetch()
-        self.response.write(css[0].contents)
+        try:
+            css_id = int(self.request.get('id').encode('utf-8'))
+        except:
+            self.response.write("Malformed ID.")
+        css = ndb.Key(CSS, css_id)
+        self.response.write(css.contents)
 
 application = webapp2.WSGIApplication([
     ('/', MainPage),
