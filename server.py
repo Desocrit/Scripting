@@ -8,7 +8,7 @@ from re import sub
 
 import webapp2
 import re
-import hashlib
+from hashlib import md5
 
 ADD_PAGE_FORM = """\
      <form>
@@ -90,6 +90,7 @@ class Version(ndb.Model):
     creator = admins = ndb.UserProperty()
     v_id = ndb.IntegerProperty()
     contents = ndb.StringProperty(indexed=False)
+    css_ids = ndb.IntegerProperty(repeated=True)
 
 
 class Page(ndb.Model):
@@ -100,21 +101,13 @@ class Page(ndb.Model):
     # Todo: Images
 
 
-class Cached_CSS(ndb.Model):
-    ''' A single version of a css file.'''
-    time_added = ndb.DateTimeProperty(auto_now_add=True)
-    hash = ndb.StringProperty()
-    creator = admins = ndb.UserProperty()
-    v_id = ndb.IntegerProperty()
-    contents = ndb.StringProperty(indexed=False)
-    url = ndb.StringProperty()
-    proxy_url = ndb.StringProperty()
-
-
 class CSS(ndb.Model):
-    creator = ndb.UserProperty()
-    url = ndb.StringProperty()
+    ''' A cached css file.
+        Hash is saved to avoid repetition. '''
+    hash = ndb.StringProperty()
     css_id = ndb.IntegerProperty()
+    contents = ndb.StringProperty(indexed=False)
+    pages_using = ndb.IntegerProperty(default=1)
 
 
 class Project(ndb.Model):
@@ -127,40 +120,26 @@ class Project(ndb.Model):
 
 class MainPage(webapp2.RequestHandler):
 
-    def gethref(self, url):
-        href = re.search("href.*=.*(\"|')[^\"']*(\"|')", url).group(0)
-        return re.search("(\"|')[^\"']*(\"|')", href).group(0)[1:-1]
-
-    def completepath(self, url, baseurl):
-        if url[0:2] == "//":
-            url = re.match("[^/]*://", baseurl).group() + url[2:]
-        elif url[0] == '/':
-            url = re.match("https?://[^/]*/", baseurl).group() + url[1:]
-        elif re.match("https?://", url):
-            pass
-        else:
-            url = baseurl + url
-        return url
-
-    def getallcssurls(self, hrefs):
-        css = []
-        for href in hrefs:
-            if re.search("rel.*=.*stylesheet", href):
-                css.append(self.gethref(href))
-        return css
-
-    def getbaseurl(self, url, html):
-        search = re.search("<.*base href.*=.*", html)
-        if search:
-            url = self.gethref(search.group())
-        return url
+    def warning(self, message):
+        ''' Adds a warning to the output.
+            This will be less urgent than an error. '''
+        if not self.json['warnings']:
+            self.json['warnings'] = []
+            if self.output_type.lower() == "html":
+                self.response.write("<p>Warnings:</p>")
+        self.json['warnings'].append(message)
+        if self.output_type.lower() == "html":
+                self.response.write("message")
 
     def status(self, message):
+        ''' Sets the project status '''
         self.json['status'] = message
         if self.output_type.lower() == "html" and message != 'success':
             self.response.write("<p><h1>"+message+"</h1></p><hr>")
 
     def project_to_json(self, project):
+        ''' Shows details of a project, in json form.
+            Goes as deep as versions, but not annotations '''
         self.json['project_name'] = str(project.name)
         self.json['access'] = "public" if project.public else "private"
         self.json['admins'] = [str(user) for user in project.admins]
@@ -181,6 +160,7 @@ class MainPage(webapp2.RequestHandler):
         self.json['pages'] = pages
 
     def page_to_json(self, project_name, page):
+        ''' Converts a page, as well as all saved annotations, to json '''
         json = {'url': str(page.url), 'date_created': str(page.created)}
         json['creator'] = str(page.creator)
         versions = []
@@ -206,6 +186,7 @@ class MainPage(webapp2.RequestHandler):
         self.json = dict(self.json, **json)
 
     def page_dump(self):
+        ''' Provides information on the contents of a page '''
         project_name = self.request.get('project_name', DEFAULT_PROJECT_NAME)
         url = self.request.get('url')
         if not url:
@@ -238,46 +219,51 @@ class MainPage(webapp2.RequestHandler):
         self.project_to_json(project)
         return project
 
-    def add_css(self, url, keep_comments=False):
-        ''' Adds a css page to the current project, via "get"'''
-        # Pre-prepare variables to simplify the construction itself.
-        user = users.get_current_user()
-        # Try to grab the page. Return on any exception
+    def get_href(self, url):
+        href = re.search("href.*=.*(\"|')[^\"']*(\"|')", url).group(0)
+        return re.search("(\"|')[^\"']*(\"|')", href).group(0)[1:-1]
+
+    def complete_href(self, url, href):
+        ''' Checks a given href, and appends to the current url if needed '''
+        if href[0:2] == "//":
+            href = re.match("[^/]*://", url).group() + href[2:]
+        elif href[0] == '/':
+            href = re.match("https?://[^/]*/", url).group() + href[1:]
+        elif not re.match("https?://", href):
+            href = url + href
+        return href
+
+    def add_css(self, url):
+        ''' Reads a css file, adding to or getting from the database. '''
         try:
-            contents = urllib.urlopen(url).read()
+            css = urllib.urlopen(url).read()
         except:
-            self.status("CSS not found.")
-            return
-        hash = hashlib.md5(contents).hexdigest()
-        latest = Cached_CSS.query(Cached_CSS.url == url)
-        latest = latest.order(-Cached_CSS.time_added).fetch()
-        needs_create = False
-        if len(latest) > 0 and hash == latest[0].hash:
-            version = latest[0]
-            vid = version.v_id
-            proxy_url = version.proxy_url
+            return self.warning("CSS not found.")
+        hash = md5(css).hexdigest()
+        existing_css = CSS.query(CSS.hash == hash).fetch()
+        if existing_css:
+            css_id = existing_css[0].css_id
         else:
-            needs_create = True
-        if needs_create:
-            vid = Cached_CSS.query().count()
-            proxy_url += "css?id=" + str(vid)
-            version = Cached_CSS(id=vid, v_id=vid,
-                                 creator=user, hash=hash, url=url)
-            version.contents = contents
-            version.put()
+            css_id = CSS.query().count()
+            cached_css = CSS(id=css_id, css_id=css_id, contents=css, hash=hash)
+            # Update the html
+            proxy_url = re.match("https?://[^/]*/", self.request.url).group()
+            proxy_url += "css?id=" + str(css_id)
+            self.html = sub(re.escape(url), proxy_url, self.html)
+            cached_css.put()
         self.status('success')
-        return (vid, proxy_url)
+        return css_id
 
     def add_page(self, keep_comments=False):
-        ''' Adds a page to the current project, via "get"'''
-        # Pre-prepare variables to simplify the construction itself.
+        ''' Adds a page to the current project. '''
+        # Get properties
         project_name = self.request.get('project_name', DEFAULT_PROJECT_NAME)
         key = ndb.Key("Project", project_name)
         user = users.get_current_user()
         url = self.request.get('url')
         # Try to grab the page. Return on any exception
         try:
-            html = urllib.urlopen(url).read()
+            self.html = urllib.urlopen(url).read()
         except:
             self.status("Page not found.")
             return
@@ -288,26 +274,23 @@ class MainPage(webapp2.RequestHandler):
             page.put()
         else:
             page = ndb.Key("Project", project_name, "Page", url).get()
-        css_ids = []
-        hrefs = re.findall(".*href.*", html)
-        baseurl = self.getbaseurl(url, html)
-        cssurls = self.getallcssurls(hrefs)
-        for cssurl in cssurls:
-            (css_id, proxy_url) = self.add_css(
-                self.completepath(cssurl, baseurl), keep_comments)
-            css_ids.append(css_id)
-            html = sub(re.escape(cssurl), proxy_url, html)
+        # Check to see if a base url is offered. If not, use current url.
+        base_url = re.search("<.*base href.*=.*", self.html)
+        if base_url:
+            url = self.get_href(base_url.group())
+        # Get the css IDs.
+        hrefs = re.findall(".*href.*", self.html)
+        is_stylesheet = lambda x: re.search("rel.*=.*stylesheet", x)
+        css_urls = [self.get_href(h) for h in hrefs if is_stylesheet(h)]
+        css_ids = [self.add_css(self.complete_href(url, c)) for c in css_urls]
         # Add a new version at the current time
         vid = Version.query().count()
         version = Version(parent=page.key, id=vid, v_id=vid, creator=user)
-        version.contents = sub(r'(?i)<script>.*?</script>{1}?', "", html)
+        version.contents = sub(r'(?i)<script>.*?</script>{1}?', "", self.html)
+        version.css_ids = css_ids
         version.put()
-        for css_id in css_ids:
-            css = CSS(id=cssurl, creator=user, url=cssurl,
-                      css_id=css_id, parent=version.key)
-            css.put()
         self.status('success')
-        return page
+        return
 
     def view_page(self):
         ''' Views the stored HTML for the page. Images and css not included'''
@@ -320,8 +303,7 @@ class MainPage(webapp2.RequestHandler):
             if not page:
                 raise Exception
         except:
-            self.status("Page not found.")
-            return
+            return self.status("Page not found.")
         # Grab the latest version of the page.
         latest = Version.query(ancestor=page.key)
         latest = latest.order(-Version.time_added).fetch()
@@ -366,18 +348,15 @@ class MainPage(webapp2.RequestHandler):
             x_pos = int(x_pos)
             y_pos = int(y_pos)
         except:
-            self.status("Position arguments cannot be converted to integers.")
-            return
+            return self.status("Arguments cannot be converted to integers.")
         if not x_pos or not y_pos or not message or not element_id:
-            self.status('Missing required parameters. Please update request.')
-            return
+            return self.status('Missing parameters. See readme for details.')
         # Find the latest version of the url.
         project_name = self.request.get('project_name', DEFAULT_PROJECT_NAME)
         url = self.request.get('url')
         key = ndb.Key("Project", project_name, "Page", url)
         if not key.get():
-            self.status("Page not found")
-            return
+            return self.status("Page not found")
         latest = Version.query(ancestor=key)
         latest = latest.order(-Version.time_added).fetch(1)[0]
         annotation = Annotation.query(
@@ -411,11 +390,11 @@ class MainPage(webapp2.RequestHandler):
             self.response.write("<p>Logged in as ")
             self.response.write(str(users.get_current_user()) + "</p>")
             url = users.create_logout_url(self.request.uri)
-            url_linktext = 'Logout'
+            url_linkthref = 'Logout'
         else:
             url = users.create_login_url(self.request.uri)
-            url_linktext = 'Login'
-        self.response.write('<a href="%s">%s</a>' % (url, url_linktext))
+            url_linkthref = 'Login'
+        self.response.write('<a href="%s">%s</a>' % (url, url_linkthref))
 
     def display_project(self, project_name, project):
         ''' Adds project details for the api '''
@@ -453,49 +432,37 @@ class MainPage(webapp2.RequestHandler):
         if command == 'switch project':
             self.redirect('/?' + urllib.urlencode(
                 {'project_name': project_name}))
-            self.status('success')
             self.project_to_json(key.get())
-            return
+            return self.status('success')
         if command == 'create project':
             return [self.create_project(project_name)]
         # Project commands
         project = key.get()
         if user not in project.members and not project.public:
-            self.status("Access denied.")
-            return
+            return self.status("Access denied.")
         if command == "add or replace page":
-            self.add_page(False)
-            return
+            return self.add_page(False)
         if command == "update page":
-            self.add_page(True)
-            return
+            return self.add_page(True)
         if command == "view page":
-            if self.view_page():  # If page exists.
-                return False
-            return
+            return self.view_page()  # If page exists.
         if command == "page details":
-            if self.page_dump():
-                return False
-            return
+            return self.page_dump()
         if command == "annotate":
-            self.annotate()
-            return
+            return self.annotate()
         # Admin commands
         if user not in project.admins:
-            self.status("Access denied.")
-            return
+            return self.status("Access denied.")
         if command == 'delete project':
             try:
                 for page in Page.query(ancestor=key).fetch():
                     self.delete_page(page.key)
                 key.delete()
-                self.status('success')
+                return self.status('success')
             except:
-                self.status("Project not found.")
-            return
+                return self.status("Project not found.")
         if command == "roll back page":
-            self.roll_back()
-            return
+            return self.roll_back()
         if command == "delete page":
             try:
                 self.delete_page(ndb.Key("Project", project_name,
@@ -508,9 +475,8 @@ class MainPage(webapp2.RequestHandler):
         if command == "make private":
             project.public = False
         if not self.request.get('user_name'):
-            self.status('success')
             project.put()
-            return
+            return self.status('success')
         else:
             try:
                 user_name = users.User(self.request.get('user_name'))
@@ -553,7 +519,7 @@ class MainPage(webapp2.RequestHandler):
         # Handle all the different get commands'''
         if command:
             project = self.handle_commands(command.lower(), project_name)
-            if project is False:  # Correct
+            if project is True:
                 if self.output_type.lower() == 'json':
                     self.response.write(repr(self.json))
                 return
@@ -590,7 +556,7 @@ class MainPage(webapp2.RequestHandler):
 class CSSPage(webapp2.RequestHandler):
     def get(self):
         css_id = int(self.request.get('id').encode('utf-8'))
-        css = Cached_CSS.query(Cached_CSS.v_id == css_id).fetch()
+        css = CSS.query(CSS.v_id == css_id).fetch()
         self.response.write(css[0].contents)
 
 application = webapp2.WSGIApplication([
