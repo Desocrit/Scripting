@@ -330,7 +330,7 @@ class MainPage(webapp2.RequestHandler):
             for av in AnnotationVersion.query(ancestor=annotation).fetch():
                 av.key.delete()
             annotation.key.delete()
-        for css_id in version.css_ids:
+        for css_id in version.get().css_ids:
             css = ndb.Key(CSS, css_id)
             css.get().pages_using -= 1
             if css.get().pages_using == 0:
@@ -339,9 +339,13 @@ class MainPage(webapp2.RequestHandler):
 
     def delete_page(self, page):
         self.response.write(page)
-        for version in Version.query(ancestor=page).fetch():
+        if not page.get:
+            return False
+        for page in Page.query().fetch():
+            self.response.write(page.key)
+        for version in Version.query(ancestor=page.key).fetch():
             self.delete_version(version.key)
-        page.delete()
+        page.key.delete()
 
     def annotate(self):
         ''' Annotates a position in the page. Updates existing annotation
@@ -471,10 +475,8 @@ class MainPage(webapp2.RequestHandler):
         if command == "roll back page":
             return self.roll_back()
         if command == "delete page":
-            try:
-                self.delete_page(ndb.Key("Project", project_name,
-                                         "Page", self.request.get('url')))
-            except:
+            if not self.delete_page(ndb.Key("Project", project_name,
+                                            "Page", self.request.get('url'))):
                 self.status("Page not found.")
             return
         if command == "make public":
