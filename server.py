@@ -243,13 +243,14 @@ class MainPage(webapp2.RequestHandler):
         if existing_css:
             cached_css = existing_css[0]
             cached_css.pages_using += 1
+            cached_css.put()
         else:
             cached_css = CSS(contents=css, hash=hash)
             cached_css.put()
             # Update the html
             proxy_url = re.match("https?://[^/]*/", self.request.url).group()
             proxy_url += "css?id=" + str(cached_css.key.id())
-            self.html = sub(re.escape(url), proxy_url, self.html)
+            self.response.write(str(cached_css.key.id()))
         self.status('success')
         return cached_css.key.id()
 
@@ -262,7 +263,7 @@ class MainPage(webapp2.RequestHandler):
         url = self.request.get('url')
         # Try to grab the page. Return on any exception
         try:
-            self.html = urllib.urlopen(url).read()
+            html = urllib.urlopen(url).read()
         except:
             self.status("Page not found.")
             return
@@ -274,18 +275,21 @@ class MainPage(webapp2.RequestHandler):
         else:
             page = ndb.Key("Project", project_name, "Page", url).get()
         # Check to see if a base url is offered. If not, use current url.
-        base_url = re.search("<.*base href.*=.*", self.html)
+        base_url = re.search("<.*base href.*=.*", html)
         if base_url:
             url = self.get_href(base_url.group())
         # Get the css IDs.
-        hrefs = re.findall(".*href.*", self.html)
+        hrefs = re.findall(".*href.*", html)
         is_stylesheet = lambda x: re.search("rel.*=.*stylesheet", x)
         css_urls = [self.get_href(h) for h in hrefs if is_stylesheet(h)]
         css_ids = [self.add_css(self.complete_href(url, c)) for c in css_urls]
+        current_url = re.match("https?://[^/]*/", self.request.url).group()
+        for (url, id) in zip(css_urls, css_ids):
+            html = sub(re.escape(url), current_url + "css?id=" + str(id), html)
         # Add a new version at the current time
         vid = Version.query().count()
         version = Version(parent=page.key, id=vid, v_id=vid, creator=user)
-        version.contents = sub(r'(?i)<script>.*?</script>{1}?', "", self.html)
+        version.contents = sub(r'(?i)<script>.*?</script>{1}?', "", html)
         version.css_ids = css_ids
         version.put()
         self.status('success')
@@ -322,7 +326,7 @@ class MainPage(webapp2.RequestHandler):
         if len(latest) <= 1:
             self.status("Not enough versions found.")
             return
-        latest[0].key.delete()
+        self.delete_version(latest[0].key)
         self.status('success')
 
     def delete_version(self, version):
@@ -338,11 +342,8 @@ class MainPage(webapp2.RequestHandler):
         version.delete()
 
     def delete_page(self, page):
-        self.response.write(page)
         if not page.get:
             return False
-        for page in Page.query().fetch():
-            self.response.write(page.key)
         for version in Version.query(ancestor=page.key).fetch():
             self.delete_version(version.key)
         page.key.delete()
@@ -569,7 +570,7 @@ class CSSPage(webapp2.RequestHandler):
         except:
             self.response.write("Malformed ID.")
         css = ndb.Key(CSS, css_id)
-        self.response.write(css.contents)
+        self.response.write(css.get().contents)
 
 application = webapp2.WSGIApplication([
     ('/', MainPage),
