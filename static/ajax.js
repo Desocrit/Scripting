@@ -1,6 +1,7 @@
 var currentPage;
 var lastPing;
 var project;
+var annotations = [];
 
 /**
  * Should display the main interface (called after successful login)
@@ -151,4 +152,20 @@ function listPages(projectName)
 	document.getElementById('navigation').innerHTML = 
 	    '?command=page_links'
         + '&project_name=' + project;
+}
+
+function saveAnnotations()
+{
+    for (var i = 0; i < annotations.length; i++)
+    {
+        jsonCall
+        (
+              'Annotate',
+              'message=' + annotations[i].innerText
+            + '&id=' + annotations[i].subjectElement.id
+            + '&x_pos=m&y_pos=n',
+            (function() { }),
+            displayServerError
+        );
+    }
 }
