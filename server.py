@@ -250,6 +250,7 @@ class MainPage(webapp2.RequestHandler):
             # Update the html
             proxy_url = re.match("https?://[^/]*/", self.request.url).group()
             proxy_url += "css?id=" + str(cached_css.key.id())
+            self.response.write(str(cached_css.key.id()))
         self.status('success')
         return cached_css.key.id()
 
@@ -288,7 +289,7 @@ class MainPage(webapp2.RequestHandler):
         # Add a new version at the current time
         vid = Version.query().count()
         version = Version(parent=page.key, id=vid, v_id=vid, creator=user)
-        version.contents = sub(r'(?i)<script.*?</script>{1}?', "", html)
+        version.contents = sub(r'(?i)<script>.*?</script>{1}?', "", html)
         version.css_ids = css_ids
         version.put()
         self.status('success')
@@ -349,7 +350,7 @@ class MainPage(webapp2.RequestHandler):
 
     def page_links(self):
         ''' Generates list of pages '''
-        project_name = self.request.get('project_name')
+		project_name = self.request.get('project_name')
         # Firstly find the saved pages.
         pages_query = Page.query(
             ancestor=ndb.Key("Project", project_name)).order(-Page.created)
@@ -478,7 +479,7 @@ class MainPage(webapp2.RequestHandler):
             return self.page_dump()
         if command == "annotate":
             return self.annotate()
-        if command == "page_links":
+		if command == "page_links":
             return self.page_links()
         # Admin commands
         if user not in project.admins:
