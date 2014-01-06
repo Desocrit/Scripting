@@ -133,6 +133,23 @@ function buttonAddPage(url)
 {
     url = url.replace(/:/g,'%3A');
     url = url.replace(/\//g,'%2F');
-    jsonCall("Add+or+Replace+Page", "url="+url, null, null);
+    jsonCall("Add+or+Replace+Page", "url="+url,);
 }
 
+function addAnnotation(msg, id, x, y)
+{
+
+	{
+		jsonCall
+		(
+			'annotate', 'message=' + msg + '&element_id=' + id + '&x_pos=' + x + 'y_pos=' + y,
+		);
+	}
+}
+
+function listPages(projectName)
+{
+	document.getElementById('navigation').innerHTML = 
+	    '?command=page_links'
+        + '&project_name=' + project;
+}
