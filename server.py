@@ -224,7 +224,9 @@ class MainPage(webapp2.RequestHandler):
 
     def complete_href(self, url, href):
         ''' Checks a given href, and appends to the current url if needed '''
-        if href[0:2] == "//":
+        if not href:
+            href = None
+        elif href[0:2] == "//":
             href = re.match("[^/]*://", url).group() + href[2:]
         elif href[0] == '/':
             href = re.match("https?://[^/]*/", url).group() + href[1:]
@@ -247,7 +249,7 @@ class MainPage(webapp2.RequestHandler):
         else:
             cached_css = CSS(contents=css, hash=hash)
             cached_css.put()
-            # Update the html
+            # Create proxy url
             proxy_url = re.match("https?://[^/]*/", self.request.url).group()
             proxy_url += "css?id=" + str(cached_css.key.id())
         self.status('success')
@@ -285,6 +287,17 @@ class MainPage(webapp2.RequestHandler):
         current_url = re.match("https?://[^/]*/", self.request.url).group()
         for (url, id) in zip(css_urls, css_ids):
             html = sub(re.escape(url), current_url + "css?id=" + str(id), html)
+        all_tags = re.findall("<[^/].*?>", html)
+        i = 0
+        for tag in all_tags:
+            if not re.search("id=", tag):
+                end = -1
+                if tag[-2] == '/':
+                    end = -2
+                newtag = tag[0:end] + ' id="ServerAddedTag'+str(i)+'"'+tag[end:]
+                html = sub(re.escape(tag), newtag, html, 1)
+                i += 1
+        
         # Add a new version at the current time
         vid = Version.query().count()
         version = Version(parent=page.key, id=vid, v_id=vid, creator=user)
@@ -591,6 +604,6 @@ class CSSPage(webapp2.RequestHandler):
         self.response.write(css.get().contents)
 
 application = webapp2.WSGIApplication([
-    ('/', MainPage),
+    ('/end', MainPage),
     ('/css', CSSPage)
 ], debug=True)
