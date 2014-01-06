@@ -142,19 +142,6 @@ function buttonAddPage(url, projectName)
     // brb going to meeting
 }
 
-/*
-function addAnnotation(msg, id, x, y)
-{
-	{
-		jsonCall
-		(
-			'annotate',
-            'message=' + msg + '&element_id=' + id + '&x_pos=' + x + 'y_pos=' + y,
-		);
-	}
-}
-*/
-
 function listPages(projectName)
 {
 	document.getElementById('navigation').innerHTML = 
@@ -170,8 +157,8 @@ function saveAnnotations()
         (
               'Annotate',
               'message=' + annotations[i].innerText
-            + '&id=' + annotations[i].subjectElement.id
-            + '&x_pos=m&y_pos=n',
+            + '&element_id=' + annotations[i].subjectElement.id
+            + '&x_pos=0&y_pos=0',
             (function() { }),
             displayServerError
         );
