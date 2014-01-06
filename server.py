@@ -284,10 +284,10 @@ class MainPage(webapp2.RequestHandler):
         is_stylesheet = lambda x: re.search("rel.*=.*stylesheet", x)
         css_urls = [self.get_href(h) for h in hrefs if is_stylesheet(h)]
         css_ids = [self.add_css(self.complete_href(url, c)) for c in css_urls]
-        current_url = re.match("https?://[^/!]*/", self.request.url).group()
+        current_url = re.match("https?://[^/]*/", self.request.url).group()
         for (url, id) in zip(css_urls, css_ids):
             html = sub(re.escape(url), current_url + "css?id=" + str(id), html)
-        all_tags = re.findall("<[^/].*?>", html)
+        all_tags = re.findall("<[^/!].*?>", html)
         i = 0
         for tag in all_tags:
             if not re.search("id=", tag):
