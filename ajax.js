@@ -127,3 +127,20 @@ function checkForUpdates()
     );
 }
 
+function addAnnotation(msg, id, x, y)
+{
+
+	{
+		jsonCall
+		(
+			'annotate', 'message=' + msg + '&element_id=' + id + '&x_pos=' + x + 'y_pos=' + y,
+		);
+	}
+}
+
+function listPages(projectName)
+{
+	document.getElementById('navigation').innerHTML = 
+	    '?command=page_links'
+        + '&project_name=' + project;
+}

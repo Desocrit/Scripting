@@ -348,6 +348,23 @@ class MainPage(webapp2.RequestHandler):
             self.delete_version(version.key)
         page.key.delete()
 
+    def page_links(self):
+        ''' Generates list of pages '''
+		project_name = self.request.get('project_name')
+        # Firstly find the saved pages.
+        pages_query = Page.query(
+            ancestor=ndb.Key("Project", project_name)).order(-Page.created)
+        pages = pages_query.fetch()
+        # Write them if any are found.
+        if pages:
+            self.response.write(
+                "<p><h1>Pages for %s</h1></p>" % project_name)
+        else:
+            self.response.write(
+                "<b>No urls found for %s<BR>" % project_name)
+        for page in pages:
+            self.response.write("<p>" + self.response.write(str(cgi.escape(page.url)) + "</p>"))
+		
     def annotate(self):
         ''' Annotates a position in the page. Updates existing annotation
             if the annotation already exists. '''
@@ -462,6 +479,8 @@ class MainPage(webapp2.RequestHandler):
             return self.page_dump()
         if command == "annotate":
             return self.annotate()
+		if command == "page_links":
+            return self.page_links()
         # Admin commands
         if user not in project.admins:
             return self.status("Access denied.")
