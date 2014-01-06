@@ -5,6 +5,7 @@ from google.appengine.api import users
 from google.appengine.ext import ndb
 
 from re import sub
+from json import dumps as dump
 
 import webapp2
 import re
@@ -119,6 +120,8 @@ class Project(ndb.Model):
 
 class MainPage(webapp2.RequestHandler):
 
+    # Status stuff
+
     def warning(self, message):
         ''' Adds a warning to the output.
             This will be less urgent than an error. '''
@@ -136,6 +139,8 @@ class MainPage(webapp2.RequestHandler):
         if self.output_type.lower() == "html" and message != 'success':
             self.response.write("<p><h1>"+message+"</h1></p><hr>")
 
+    # JSON stuff
+
     def project_to_json(self, project):
         ''' Shows details of a project, in json form.
             Goes as deep as versions, but not annotations '''
@@ -151,7 +156,7 @@ class MainPage(webapp2.RequestHandler):
             pages.append(page)
             versions = []
             for v in Version.query(ancestor=child.key).fetch():
-                version = {'id': str(v.id)}
+                version = {'id': str(v.v_id)}
                 version['date_created'] = str(v.time_added)
                 version['creator'] = str(v.creator)
                 versions.append(version)
@@ -617,7 +622,7 @@ class MainPage(webapp2.RequestHandler):
             self.display_login()
             self.response.write("</body></html>")
         if self.output_type.lower() == 'json':
-            self.response.write(repr(self.json))
+            self.response.write(dump(self.json, indent=4))
 
 
 class CSSPage(webapp2.RequestHandler):
