@@ -5,6 +5,7 @@
 	<title>COMP3001 Scripting Languages Group Project - Team F</title>
 	<link rel="stylesheet" href="static/style.css" type="text/css">
 	<script src="static/ajax.js"></script>
+	<script src="static/ui.js"></script>
 	<script type="text/javascript">
 	currentProject = "default_project";
 	function switchNavbar()
@@ -26,69 +27,79 @@
 </head>	
 <body>
 	<header>
-		<div id ="search">
-		<input type="text"></input>
+		<div id="header_main">
+			<div id="project_menu">
+				<h2 id="main_title" class="inline">powered by <span class="emphasise">Social Browser</span></h2>
+				<!-- Project- and system-specific menu items -->
+				<ul id="menu" class="menu">
+					<li>Switch Project</li>
+					<li>Create Project</li>
+					<li>Delete Project</li>
+				</ul>
+			</div>
+			<div id="userMenu">
+				<h2 id="user_name" class="inline">user name <span class="emphasise"> Alex</span></h2>
+				<ul class="menu">
+					<li>Logout</li>
+				</ul>
+			</div>
+						<input type="text" id="search"></input>
+
 		</div>
-		<div id="headerMain">
-		<h2 class="inline">powered by social browser</h2>
-		<!-- Project- and system-specific menu items -->
-		<ul id="menu" class="menu">
-            <li>Switch Project</li>
-            <li>Create Project</li>
-            <li>Delete Project</li>
-        </ul>
-    </div>
-        <div id="userMenu">
-        	<h2 class="inline">User Name</h2>
-        	<ul class="menu">
-        	    <li>Logout</li>
-			</ul>
-        </div>
-	</header>
-	<div id ="container">
-		<div id="sidebar">
-			<h1>Navigation</h1>
-			<span id="navbutton" class="menuitem" onclick="switchNavbar()">hide navbar</span>
-			<ul>
-				<li>Test</li>
-				<li>Test</li>
-				<li>Test</li>
-				<li>Test</li>
-				<li>Test</li>
-				<li>Test</li>
-				<li>Test</li>
-				<li>Test</li>
-				<li>Test</li>
-				<li>Test</li>
-				<li>Test</li>
-				<li>Test</li>
-				<li>Test</li>
-				<li>Test</li>
-				<li>Test</li>
-				<li>Test</li>
-				<li>Test</li>
-				<li>Test</li>
-				<li>Test</li>
-				<li>Test</li>
-				<li>Test</li>
-				<li>Test</li>
-				<li>Test</li>
-				<li>Test</li>
-			</ul>
-		</div>
-		<iframe id="page_holder" seamless sandbox="allow-same-origin allow-forms" src="/end?url=http%3A%2F%2Fwww.google.co.uk&project_name=default_project&command=View+Page"></iframe>
-		<span id="backbutton" onclick="window.frames['page_holder'].history.go(-1);">Back</span>		
 	</div>
-	<footer>
+</header>
+<div id ="container">
+	<div id="sidebar">
+		<h1>Bookmarks</h1>
+		<span id="navbutton" class="menuitem" onclick="switchNavbar()">hide navbar</span>
+		<ul>
+			<li>Dhsjadsahdkshajkdsad</li>
+			<li>dsahdskadhjskhadjksad</li>
+			<li>dshadkhsjakdhsjkae fwa fwe fhdjskad</li>
+			<li>dsnajdkhsw few fwafe ajdkhsajdkhsjakdhsjakhdsj akdhjskahdjskad</li>
+			<li>Tesadsadsadsat</li>
+			<li>Tedsadssadsahdsakdhsjadsadsdsst</li>
+			<li>Tdsadsest</li>
+			<li>Tesadsadsadst</li>
+			<li>Tdsadsadsadest</li>
+			<li>Testadsadsadsad</li>
+			<li>Tessadsadsadsadt</li>
+			<li>Testsadsads</li>
+			<li>Tesfgsagsw fa feagdaghrhafdgt</li>
+			<li>Tedsadsadsadsadsadst</li>
+			<li>Tesafeafeafefaeafeafewefewafewfwfewafewafewt</li>
+			<li> eaf  Tefefaewafewst</li>
+			<li>Tfaeffesfeffef a afe aw efeadagfdagsdfeadvvcsaest</li>
+			<li>Test</li>
+			<li>Testfdagfadgfag</li>
+			<li>Test</li>
+			<li>Tese wa feaeaw ffeaeafeahrena aeft</li>
+			<li>Tesfewafewfwafewfewafewf efw aft</li>
+			<li>Test</li>
+			<li>Test</li>
+		</ul>
+		<h1>Online</h1>
+		<ul>
+			<li>User1</li>
+			<li>User123</li>
+	</div>
+	<iframe id="page_holder" seamless sandbox="allow-same-origin allow-forms" src="/end?url=http%3A%2F%2Fwww.google.co.uk&project_name=default_project&command=View+Page"></iframe>
+
+	<span id="backbutton" onclick="window.frames['page_holder'].history.go(-1);">BACK</span>	
+	<div id="toolbar"></div>	
+</div>
+<footer>
 	<!-- Page-specific menu items -->
-		<ul id="menu2" class="menu">
-			<script text="text/javascript">url = document.getElementById('page_holder').src;</script>
-			<li onclick="buttonAddPage(url,currentProject);">Add Page</li>
-	        <li>Edit History</li>
-	        <li>Delete Page</li>
-	        <li>Page Details</li>
-	        <li>Stuff</li>
-        </ul>
-    </footer>
+	<div id="menu2" >
+		<ul class="menu">
+		<script text="text/javascript">url = document.getElementById('page_holder').src;</script>
+		<li onclick="buttonAddPage(url,currentProject);">Add Page</li>
+		<li>Edit History</li>
+		<li>Delete Page</li>
+		<li>Page Details</li>
+		<li>Stuff</li>
+	</ul>
+	</div>
+</footer>
 </body>
 </html>
