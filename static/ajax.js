@@ -23,7 +23,14 @@ function displayServerError(xmlhttp)
 
 function displayAddPage()
 {
+    // Need to update pages list
     alert('Page added!');
+}
+
+function displayCreatePage()
+{
+    // Need to update pages list
+    alert('Project created!');
 }
 
 /**
@@ -131,6 +138,11 @@ function checkForUpdates()
             }
         })
     );
+}
+
+function createProject(newName){
+    project = newName;
+    jsonCall("Create+Project",,displayCreatePage, displayServerError);
 }
 
 function buttonAddPage(url, projectName)
