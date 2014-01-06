@@ -56,8 +56,6 @@ function apiCall(command, vars, callback)
         + '&command='      + command
         + '&output_type=json';
 
-    alert(req);
-
     xmlhttp.timeout   = 3000;
     xmlhttp.ontimeout = displayTimeoutError;
     xmlhttp.open('GET', req, true);
@@ -134,11 +132,12 @@ function buttonAddPage(url)
     url = url.replace(/:/g,'%3A');
     url = url.replace(/\//g,'%2F');
     jsonCall("Add+or+Replace+Page", "url="+url,);
+    // Should then display some kind of "done!" message and refresh the pages sidebar
+    // brb going to meeting
 }
 
 function addAnnotation(msg, id, x, y)
 {
-
 	{
 		jsonCall
 		(
