@@ -1,64 +1,54 @@
 <!DOCTYPE html>
 <html>
-	<head>
-		<title>COMP3001 Scripting Languages Group Project - Team F</title>
-		<link rel="stylesheet" href="style.css" type="text/css">
-		<script href="/ajax.js"></script>
-		<script type="text/javascript">
-			function switchNavbar()
-			{
-				if(document.getElementById("navigation").style.visibility == "hidden")
-				{
-					document.getElementById("navigation").style.visibility = "visible";
-					document.getElementById("navbutton").innerHTML = "hide navbar";
-				}
-				else
-				{
-					document.getElementById("navigation").style.visibility = "hidden";
-					document.getElementById("navbutton").innerHTML = "show navbar";
-				}
-			}
-		</script>
-	</head>
-	<body>
-		<div id="contentcontainer">
-			<div id="content">
-				<iframe id="page_holder" seamless sandbox="allow-same-origin allow-forms allow-scripts" src="http://en.wikipedia.org/"></iframe>
-			</div>
-		</div>
-		<div id="navigation">
-			<strong>Project: ProjName</strong>
-			<!-- List of all pages within a project -->
-			<ul id="navlist">
-				<li class="navitem">page1</li>
-				<li class="navitem">page2</li>
-				<li class="navitem">page3</li>
-				<li class="navitem">my roflcopter goes soisoisoisoisoisoisoisoisoisoisoisoisoisoisoisoisoisoisoisoisoisoisoisoisoisoisoisoisoisoi</li>
-			</ul>
-		</div>
-		<div id="hdr">
-			<header>
-				<h1>hi</h1>
-				<!-- Project- and system-specific menu items -->
-				<div id="menu">
-					<span class="menuitem">Switch Project</span>
-					<span class="menuitem">Create Project</span>
-					<span class="menuitem">Delete Project</span>
-					<span class="menuitem">Logout</span>
-					<span id="navbutton" class="menuitem" onclick="switchNavbar()">hide navbar</span>
-				</div>
-			<header>
-		</div>
-		<div id="ftr">
-			<footer>
-				<!-- Page-specific menu items -->
-				<div id="menu2">
-					<span class="menuitem">Edit History</span>
-					<span class="menuitem">Delete Page</span>
-					<span class="menuitem">Page Details</span>
-					<span class="menuitem">Stuff</span>
-				</div>
-			<footer>
-		</div>
-	</body>
+<head>
+	<script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+	<title>COMP3001 Scripting Languages Group Project - Team F</title>
+	<link rel="stylesheet" href="style.css" type="text/css">
+
+
+	<script href="/ajax.js"></script>
+	<script type="text/javascript">
+	function switchNavbar()
+	{
+		if(document.getElementById("navigation").style.visibility == "hidden")
+		{
+			document.getElementById("navigation").style.visibility = "visible";
+			document.getElementById("navbutton").innerHTML = "hide navbar";
+		}
+		else
+		{
+			document.getElementById("navigation").style.visibility = "hidden";
+			document.getElementById("navbutton").innerHTML = "show navbar";
+		}
+	} 
+	</script>
+	<script text="text/javascript">
+	</script>
+</head>	
+<body>
+	<header>
+		<h1>Project: Name</h1>
+		<h2>powered by social browser</h2>
+		<!-- Project- and system-specific menu items -->
+		<div id="menu" class="menu">
+            <li>Switch Project</li>
+            <li>Create Project</li>
+            <li>Delete Project</li>
+            <li>Logout</li>
+            <span id="navbutton" class="menuitem" onclick="switchNavbar()">hide navbar</span>
+        </div>
+	</header>
+	<div id ="container">
+		<iframe id="page_holder" seamless sandbox="allow-same-origin allow-forms" src="http://theverge.com/"></iframe>
+	</div>
+	<footer>
+	<!-- Page-specific menu items -->
+		<ul id="menu2" class="menu">
+	        <li>Edit History</li>
+	        <li>Delete Page</li>
+	        <li>Page Details</li>
+	        <li>Stuff</li>
+        </ul>
+    </footer>
+</body>
 </html>
