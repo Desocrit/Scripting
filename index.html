@@ -3,11 +3,11 @@
 <head>
 	<script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
 	<title>COMP3001 Scripting Languages Group Project - Team F</title>
-	<link rel="stylesheet" href="style.css" type="text/css">
+	<link rel="stylesheet" href="static/style.css" type="text/css">
 
 
-	<script src="./ajax.js"></script>
-	<script src="./buttonfunctions.js"></script>
+	<script src="static/ajax.js"></script>
+	<script src="static/buttonfunctions.js"></script>
 	<script type="text/javascript">
 	function switchNavbar()
 	{
@@ -28,31 +28,66 @@
 </head>	
 <body>
 	<header>
-		<h1>Project: Name</h1>
-		<h2>powered by social browser</h2>
+		<div id ="search">
+		<input type="text"></input>
+		</div>
+		<div id="headerMain">
+		<h2 class="inline">powered by social browser</h2>
 		<!-- Project- and system-specific menu items -->
-		<div id="menu" class="menu">
+		<ul id="menu" class="menu">
             <li>Switch Project</li>
             <li>Create Project</li>
             <li>Delete Project</li>
-            <li>Logout</li>
-            <span id="navbutton" class="menuitem" onclick="switchNavbar()">hide navbar</span>
+        </ul>
+    </div>
+        <div id="userMenu">
+        	<h2 class="inline">User Name</h2>
+        	<ul class="menu">
+        	    <li>Logout</li>
+			</ul>
         </div>
 	</header>
 	<div id ="container">
+		<div id="sidebar">
+			<h1>Navigation</h1>
+			<span id="navbutton" class="menuitem" onclick="switchNavbar()">hide navbar</span>
+			<ul>
+				<li>Test</li>
+				<li>Test</li>
+				<li>Test</li>
+				<li>Test</li>
+				<li>Test</li>
+				<li>Test</li>
+				<li>Test</li>
+				<li>Test</li>
+				<li>Test</li>
+				<li>Test</li>
+				<li>Test</li>
+				<li>Test</li>
+				<li>Test</li>
+				<li>Test</li>
+				<li>Test</li>
+				<li>Test</li>
+				<li>Test</li>
+				<li>Test</li>
+				<li>Test</li>
+				<li>Test</li>
+				<li>Test</li>
+				<li>Test</li>
+				<li>Test</li>
+				<li>Test</li>
+			</ul>
+		</div>
 		<iframe id="page_holder" seamless sandbox="allow-same-origin allow-forms" src="http://theverge.com/"></iframe>
+		<span id="backbutton">< Back</span>		
 	</div>
 	<footer>
 	<!-- Page-specific menu items -->
 		<ul id="menu2" class="menu">
-			<script text="text/javascript">
-				url = document.getElementById('page_holder').src;
-			</script>
-			<li onclick="buttonAddPage(url);">Add/Replace Page</li>
-			<li>Update Page</li>
 	        <li>Edit History</li>
 	        <li>Delete Page</li>
 	        <li>Page Details</li>
+	        <li>Stuff</li>
         </ul>
     </footer>
 </body>
