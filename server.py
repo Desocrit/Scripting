@@ -591,6 +591,6 @@ class CSSPage(webapp2.RequestHandler):
         self.response.write(css.get().contents)
 
 application = webapp2.WSGIApplication([
-    ('/', MainPage),
+    ('/end', MainPage),
     ('/css', CSSPage)
 ], debug=True)
