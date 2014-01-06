@@ -137,8 +137,14 @@ function buttonAddPage(url, projectName)
 {
     url = url.replace(/:/g,'%3A');
     url = url.replace(/\//g,'%2F');
+<<<<<<< HEAD
     project = projectName;
     jsonCall("Add+or+Replace+Page", "url="+url, displayAddPage, displayServerError);
+=======
+    jsonCall("Add+or+Replace+Page", "url="+url, displayAddPage, displayServerError);
+    // Should then display some kind of "done!" message and refresh the pages sidebar
+    // brb going to meeting
+>>>>>>> 2f344b90075f40fb5d3b3c9b650ce1a6b9438426
 }
 
 /*
