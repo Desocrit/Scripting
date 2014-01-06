@@ -21,6 +21,11 @@ function displayServerError(xmlhttp)
     alert('Server be broken');
 }
 
+function displayAddPage()
+{
+    alert('Done!');
+}
+
 /**
  * This is called with the server times out
  */
@@ -52,7 +57,7 @@ function apiCall(command, vars, callback)
     });
 
     var req =
-          '?project_name='  + project
+          '/end?project_name='  + project
         + '&'              + vars
         + '&command='      + command
         + '&output_type=json';
@@ -106,7 +111,7 @@ function login()
 function getPage()
 {
     document.getElementById('page_holder').src =
-          '?command=View+Page'
+          '/end?command=View+Page'
         + '&url=' + encodeURIComponent(document.getElementById('go_button').value)
         + '&project_name=' + project;
 }
@@ -132,25 +137,28 @@ function buttonAddPage(url)
 {
     url = url.replace(/:/g,'%3A');
     url = url.replace(/\//g,'%2F');
-    jsonCall("Add+or+Replace+Page", "url="+url,);
+    jsonCall("Add+or+Replace+Page", "url="+url, displayAddPage, displayServerError);
     // Should then display some kind of "done!" message and refresh the pages sidebar
     // brb going to meeting
 }
 
+/*
 function addAnnotation(msg, id, x, y)
 {
 	{
 		jsonCall
 		(
-			'annotate', 'message=' + msg + '&element_id=' + id + '&x_pos=' + x + 'y_pos=' + y,
+			'annotate',
+            'message=' + msg + '&element_id=' + id + '&x_pos=' + x + 'y_pos=' + y,
 		);
 	}
 }
+*/
 
 function listPages(projectName)
 {
 	document.getElementById('navigation').innerHTML = 
-	    '?command=page_links'
+	    '/end?command=page_links'
         + '&project_name=' + project;
 }
 
