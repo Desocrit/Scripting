@@ -128,11 +128,12 @@ function checkForUpdates()
     );
 }
 
-function buttonAddPage(url)
+function buttonAddPage(url, projectName)
 {
     url = url.replace(/:/g,'%3A');
     url = url.replace(/\//g,'%2F');
-    jsonCall("Add+or+Replace+Page", "url="+url,);
+    project = projectName;
+    jsonCall("Add+or+Replace+Page", "url="+url,(function(){}),displayServerError);
     // Should then display some kind of "done!" message and refresh the pages sidebar
     // brb going to meeting
 }

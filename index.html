@@ -6,6 +6,7 @@
 	<link rel="stylesheet" href="static/style.css" type="text/css">
 	<script src="static/ajax.js"></script>
 	<script type="text/javascript">
+	currentProject = "default_project";
 	function switchNavbar()
 	{
 		if(document.getElementById("navigation").style.visibility == "hidden")
@@ -81,7 +82,8 @@
 	<footer>
 	<!-- Page-specific menu items -->
 		<ul id="menu2" class="menu">
-			<li onclick="buttonAddPage(document.getElementById("page_holder").src);"
+			<script text="text/javascript">url = document.getElementById('page_holder').src;</script>
+			<li onclick="buttonAddPage(url,currentProject);">Add Page</li>
 	        <li>Edit History</li>
 	        <li>Delete Page</li>
 	        <li>Page Details</li>
