@@ -23,7 +23,7 @@ function displayServerError(xmlhttp)
 
 function displayAddPage()
 {
-    alert('Done!');
+    alert('Page added!');
 }
 
 /**
@@ -137,14 +137,8 @@ function buttonAddPage(url, projectName)
 {
     url = url.replace(/:/g,'%3A');
     url = url.replace(/\//g,'%2F');
-<<<<<<< HEAD
     project = projectName;
-    jsonCall("Add+or+Replace+Page", "url="+url,(function(){}),displayServerError);
-=======
     jsonCall("Add+or+Replace+Page", "url="+url, displayAddPage, displayServerError);
->>>>>>> 320a3cc05dba40c179a62046c19ad28ee3999d59
-    // Should then display some kind of "done!" message and refresh the pages sidebar
-    // brb going to meeting
 }
 
 /*
