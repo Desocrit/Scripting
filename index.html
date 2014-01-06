@@ -6,8 +6,8 @@
 	<link rel="stylesheet" href="style.css" type="text/css">
 
 
-	<script href="/ajax.js"></script>
-	<script href="/buttonfunctions.js"</script>
+	<script src="./ajax.js"></script>
+	<script src="./buttonfunctions.js"></script>
 	<script type="text/javascript">
 	function switchNavbar()
 	{
@@ -45,7 +45,10 @@
 	<footer>
 	<!-- Page-specific menu items -->
 		<ul id="menu2" class="menu">
-			<li onclick="addPage()">Add/Replace Page</li>
+			<script text="text/javascript">
+				url = document.getElementById('page_holder').src;
+			</script>
+			<li onclick="buttonAddPage(url);">Add/Replace Page</li>
 			<li>Update Page</li>
 	        <li>Edit History</li>
 	        <li>Delete Page</li>

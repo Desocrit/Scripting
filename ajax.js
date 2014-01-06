@@ -51,10 +51,12 @@ function apiCall(command, vars, callback)
     });
 
     var req =
-          '?command='      + command
-        + '&project_name=' + project
-        + '&output_type=json'
-        + '&' + vars;
+          '?project_name='  + project
+        + '&'              + vars
+        + '&command='      + command
+        + '&output_type=json';
+
+    alert(req);
 
     xmlhttp.timeout   = 3000;
     xmlhttp.ontimeout = displayTimeoutError;
@@ -114,7 +116,7 @@ function checkForUpdates()
 {
     jsonCall
     (
-        'edits', 'url=' + currentPage '&since=' + lastPing,
+        'edits', 'url=' + currentPage + '&since=' + lastPing,
         (function(edits)
         {
             for (var i in edits.edits)
@@ -125,5 +127,12 @@ function checkForUpdates()
             }
         })
     );
+}
+
+function buttonAddPage(url)
+{
+    url = url.replace(/:/g,'%3A');
+    url = url.replace(/\//g,'%2F');
+    jsonCall("Add+or+Replace+Page", "url="+url, null, null);
 }
 
