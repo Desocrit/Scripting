@@ -203,6 +203,33 @@ class MainPage(webapp2.RequestHandler):
             self.response.write("Feature unavailable")
             return False
         return True
+        
+    def annotation_dump(self):
+        ''' Provides a list of annotations '''
+        if self.output_type.lower() != 'json':
+            self.response.write("Feature unavailable")
+            return False
+        project_name = self.request.get('project_name', DEFAULT_PROJECT_NAME)
+        url = self.request.get('url')
+        if not url:
+            self.status("Url not provided")
+        page = ndb.Key(Project, project_name, Page, url)
+        ver = Version.query(ancestor=page)
+        ver = ver.order(-Version.time_added).fetch(1)[0]
+        annotations = []
+        for a in Annotation.query(ancestor=ver.key):
+            annotation = {'creator': str(a.creator)}
+            annotation['x_pos'] = str(a.x_pos)
+            annotation['y_pos'] = str(a.y_pos)
+            vkey = ndb.Key(Project, project_name, Page, page.url,
+                           Version, ver.v_id, Annotation, a.element_id)
+            latest = AnnotationVersion.query(ancestor=vkey)
+            latest = latest.order(-AnnotationVersion.time_added)
+            latest = latest.fetch(1)[0]
+            annotation['contents'] = latest.contents
+            annotations.append(annotation)
+        self.json['annotations'] = annotations
+        self.status('success')
 
     def create_project(self, project_name):
         ''' Creates a new project, with the current user as admin & member'''
@@ -520,7 +547,9 @@ class MainPage(webapp2.RequestHandler):
             return self.page_dump()
         if command == "annotate":
             return self.annotate()
-        if command == "page_links":
+        if command == "get annotations":
+            return self.annotation_dump()
+        if command == "page links":
             return self.page_links()
         # Admin commands
         if user not in project.admins:
