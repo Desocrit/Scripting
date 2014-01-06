@@ -34,7 +34,11 @@
 		<!-- Project- and system-specific menu items -->
 		<ul id="menu" class="menu">
             <li>Switch Project</li>
-            <li>Create Project</li>
+            <li onclick="var newName = prompt('Enter new project name');
+        if(newName){
+        	currentProject = newName;
+        	createProject(currentProject);
+    	};">Create Project</li>
             <li>Delete Project</li>
         </ul>
     </div>
