@@ -122,13 +122,13 @@ class MainPage(webapp2.RequestHandler):
     def warning(self, message):
         ''' Adds a warning to the output.
             This will be less urgent than an error. '''
-        if not self.json['warnings']:
+        if not 'warnings' in self.json.keys():
             self.json['warnings'] = []
             if self.output_type.lower() == "html":
                 self.response.write("<p>Warnings:</p>")
         self.json['warnings'].append(message)
         if self.output_type.lower() == "html":
-                self.response.write("message")
+                self.response.write(message)
 
     def status(self, message):
         ''' Sets the project status '''
@@ -285,9 +285,10 @@ class MainPage(webapp2.RequestHandler):
         css_urls = [self.get_href(h) for h in hrefs if is_stylesheet(h)]
         css_ids = [self.add_css(self.complete_href(url, c)) for c in css_urls]
         current_url = re.match("https?://[^/]*/", self.request.url).group()
-        for (css_url, id) in zip(css_urls, css_ids):
-            if id: html = sub(re.escape(css_url), current_url + "css?id=" + str(id), html)
-            
+        for (css_url, css_id) in zip(css_urls, css_ids):
+            if css_id:
+                html = sub(re.escape(css_url),
+                           current_url + "css?id=" + str(css_id), html)
         ## Insert and id into all tags that dont contain one
         all_tags = re.findall("<[^/!].*?>", html)
         i = 0
@@ -296,10 +297,10 @@ class MainPage(webapp2.RequestHandler):
                 end = -1
                 if tag[-2] == '/':
                     end = -2
-                newtag = tag[0:end] + ' id="ServerAddedTag'+str(i)+'"'+tag[end:]
+                newtag = tag[0:end] + ' id="ServerAddedTag' + \
+                    str(i) + '"'+tag[end:]
                 html = sub(re.escape(tag), newtag, html, 1)
                 i += 1
-                
         # Replace all links with server requests
         all_links = re.findall("<a.*?href.*?>", html)
         for link in all_links:
@@ -307,17 +308,16 @@ class MainPage(webapp2.RequestHandler):
             if not orig_href:
                 continue
             href = self.complete_href(url, orig_href)
-            commands = {"url":href, "project_name":self.request.get('project_name'), "command":"View or Add Page"}
+            commands = {"url": href, "command": "View or Add Page",
+                        "project_name": self.request.get('project_name')}
             proxy_url = re.match("https?://[^/]*/", self.request.url).group()
             proxy_url += "end?"+urllib.urlencode(commands)
             html = sub(re.escape(orig_href), proxy_url, html, 1)
-            
-        
         # Add a new version at the current time
         vid = Version.query().count()
         version = Version(parent=page.key, id=vid, v_id=vid, creator=user)
         version.contents = sub(r'(?i)<script.*?</script>{1}?', "", html)
-        version.css_ids = css_ids
+        version.css_ids = [ci for ci in css_ids if ci]
         version.put()
         self.status('success')
         return
@@ -339,7 +339,7 @@ class MainPage(webapp2.RequestHandler):
         latest = latest.order(-Version.time_added).fetch()
         self.response.write(latest[0].contents)
         return True
-    
+
     def view_or_add(self):
         if self.view_page():
             return
@@ -378,9 +378,9 @@ class MainPage(webapp2.RequestHandler):
     def delete_page(self, page):
         if not page.get:
             return False
-        for version in Version.query(ancestor=page.key).fetch():
+        for version in Version.query(ancestor=page).fetch():
             self.delete_version(version.key)
-        page.key.delete()
+        page.delete()
 
     def page_links(self):
         ''' Generates list of pages '''
@@ -397,8 +397,8 @@ class MainPage(webapp2.RequestHandler):
             self.response.write(
                 "<b>No urls found for %s<BR>" % project_name)
         for page in pages:
-            self.response.write("<p>" + self.response.write(str(cgi.escape(page.url)) + "</p>"))
-		
+            self.response.write("<p>" + str(cgi.escape(page.url) + "</p>"))
+
     def annotate(self):
         ''' Annotates a position in the page. Updates existing annotation
             if the annotation already exists. '''
@@ -531,8 +531,10 @@ class MainPage(webapp2.RequestHandler):
         if command == "roll back page":
             return self.roll_back()
         if command == "delete page":
-            if not self.delete_page(ndb.Key("Project", project_name,
-                                            "Page", self.request.get('url'))):
+            if self.delete_page(
+                ndb.Key(
+                    "Project", project_name,
+                    "Page", self.request.get('url'))) is False:
                 self.status("Page not found.")
             return
         if command == "make public":
