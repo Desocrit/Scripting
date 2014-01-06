@@ -4,10 +4,7 @@
 	<script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
 	<title>COMP3001 Scripting Languages Group Project - Team F</title>
 	<link rel="stylesheet" href="static/style.css" type="text/css">
-
-
 	<script src="static/ajax.js"></script>
-	<script src="static/buttonfunctions.js"></script>
 	<script type="text/javascript">
 	function switchNavbar()
 	{
@@ -79,11 +76,12 @@
 			</ul>
 		</div>
 		<iframe id="page_holder" seamless sandbox="allow-same-origin allow-forms" src="http://theverge.com/"></iframe>
-		<span id="backbutton">< Back</span>		
+		<span id="backbutton" onclick="window.frames['page_holder'].history.go(-1);">Back</span>		
 	</div>
 	<footer>
 	<!-- Page-specific menu items -->
 		<ul id="menu2" class="menu">
+			<li onclick="buttonAddPage(document.getElementById("page_holder").src);"
 	        <li>Edit History</li>
 	        <li>Delete Page</li>
 	        <li>Page Details</li>
