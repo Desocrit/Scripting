@@ -142,8 +142,8 @@ function checkForUpdates()
 
 function createProject(newName){
     project = newName;
-    jsonCall("Create+Project",,displayCreatePage, displayServerError);
-    jsonCall("Switch+Project",,function(){},displayServerError);
+    jsonCall("Create+Project",null,displayCreatePage, displayServerError);
+    jsonCall("Switch+Project",null,function(){},displayServerError);
 }
 
 function buttonAddPage(url, projectName)
