@@ -225,7 +225,7 @@ class MainPage(webapp2.RequestHandler):
     def complete_href(self, url, href):
         ''' Checks a given href, and appends to the current url if needed '''
         if not href:
-            href = None
+            return
         elif href[0:2] == "//":
             href = re.match("[^/]*://", url).group() + href[2:]
         elif href[0] == '/':
@@ -285,8 +285,10 @@ class MainPage(webapp2.RequestHandler):
         css_urls = [self.get_href(h) for h in hrefs if is_stylesheet(h)]
         css_ids = [self.add_css(self.complete_href(url, c)) for c in css_urls]
         current_url = re.match("https?://[^/]*/", self.request.url).group()
-        for (url, id) in zip(css_urls, css_ids):
-            html = sub(re.escape(url), current_url + "css?id=" + str(id), html)
+        for (css_url, id) in zip(css_urls, css_ids):
+            if id: html = sub(re.escape(css_url), current_url + "css?id=" + str(id), html)
+            
+        ## Insert and id into all tags that dont contain one
         all_tags = re.findall("<[^/!].*?>", html)
         i = 0
         for tag in all_tags:
@@ -297,6 +299,19 @@ class MainPage(webapp2.RequestHandler):
                 newtag = tag[0:end] + ' id="ServerAddedTag'+str(i)+'"'+tag[end:]
                 html = sub(re.escape(tag), newtag, html, 1)
                 i += 1
+                
+        # Replace all links with server requests
+        all_links = re.findall("<a.*?href.*?>", html)
+        for link in all_links:
+            orig_href = self.get_href(link)
+            if not orig_href:
+                continue
+            href = self.complete_href(url, orig_href)
+            commands = {"url":href, "project_name":self.request.get('project_name'), "command":"View or Add Page"}
+            proxy_url = re.match("https?://[^/]*/", self.request.url).group()
+            proxy_url += "end?"+urllib.urlencode(commands)
+            html = sub(re.escape(orig_href), proxy_url, html, 1)
+            
         
         # Add a new version at the current time
         vid = Version.query().count()
@@ -318,12 +333,19 @@ class MainPage(webapp2.RequestHandler):
             if not page:
                 raise Exception
         except:
-            return self.status("Page not found.")
+            return False
         # Grab the latest version of the page.
         latest = Version.query(ancestor=page.key)
         latest = latest.order(-Version.time_added).fetch()
         self.response.write(latest[0].contents)
         return True
+    
+    def view_or_add(self):
+        if self.view_page():
+            return
+        else:
+            self.add_page()
+            self.view_page()
 
     def roll_back(self):
         ''' Rolls back a page to the previous version. Requires admin access'''
@@ -487,6 +509,8 @@ class MainPage(webapp2.RequestHandler):
             return self.add_page(True)
         if command == "view page":
             return self.view_page()  # If page exists.
+        if command == "view or add page":
+            return self.view_or_add()
         if command == "page details":
             return self.page_dump()
         if command == "annotate":
