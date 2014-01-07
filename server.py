@@ -215,8 +215,11 @@ class MainPage(webapp2.RequestHandler):
         url = self.request.get('url')
         if not url:
             self.status("Url not provided")
-        page = ndb.Key(Project, project_name, Page, url)
-        ver = Version.query(ancestor=page)
+        try:
+           page = Page.query(Page.url == url).fetch()[0] 
+        except:
+            return self.status("Page not found.")
+        ver = Version.query(ancestor=page.key)
         ver = ver.order(-Version.time_added).fetch(1)[0]
         annotations = []
         for a in Annotation.query(ancestor=ver.key):
@@ -367,9 +370,8 @@ class MainPage(webapp2.RequestHandler):
         project_name = self.request.get('project_name', DEFAULT_PROJECT_NAME)
         url = self.request.get('url')
         # Try to get the page. Return if it is not found.
-        try:
-            page = ndb.Key("Project", project_name, "Page", url).get()
-        except:
+        page = ndb.Key("Project", project_name, "Page", url).get()
+        if not page:
             return self.status("Page not found")
         # Grab the latest version of the page.
         latest = Version.query(ancestor=page.key)
