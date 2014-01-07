@@ -215,8 +215,11 @@ class MainPage(webapp2.RequestHandler):
         url = self.request.get('url')
         if not url:
             self.status("Url not provided")
-        page = ndb.Key(Project, project_name, Page, url)
-        ver = Version.query(ancestor=page)
+        try:
+           page = Page.query(Page.url == url).fetch()[0] 
+        except:
+            return self.status("Page not found.")
+        ver = Version.query(ancestor=page.key)
         ver = ver.order(-Version.time_added).fetch(1)[0]
         annotations = []
         for a in Annotation.query(ancestor=ver.key):
@@ -367,9 +370,8 @@ class MainPage(webapp2.RequestHandler):
         project_name = self.request.get('project_name', DEFAULT_PROJECT_NAME)
         url = self.request.get('url')
         # Try to get the page. Return if it is not found.
-        try:
-            page = ndb.Key("Project", project_name, "Page", url).get()
-        except:
+        page = ndb.Key("Project", project_name, "Page", url).get()
+        if not page:
             return self.status("Page not found")
         # Grab the latest version of the page.
         latest = Version.query(ancestor=page.key)
@@ -435,6 +437,17 @@ class MainPage(webapp2.RequestHandler):
                 "<b>No urls found for %s<BR>" % project_name)
         for page in pages:
             self.response.write("<p>" + str(cgi.escape(page.url) + "</p>"))
+
+    def get_page_links(self):
+        if self.output_type == 'html':
+            return self.page_links(self)
+        if self.output_type == 'json':
+            project_name = self.request.get('project_name')
+            pages_query = Page.query(
+                ancestor=ndb.Key("Project", project_name)).order(-Page.created)
+            pages = pages_query.fetch()
+            self.json['pages'] = [page.url for page in pages]
+            return self.status('success')
 
     def annotate(self):
         ''' Annotates a position in the page. Updates existing annotation
@@ -545,7 +558,8 @@ class MainPage(webapp2.RequestHandler):
         if command == "update page":
             return self.add_page(True)
         if command == "view page":
-            return self.view_page()  # If page exists.
+            self.view_page()  # If page exists.
+            return True
         if command == "view or add page":
             return self.view_or_add()
         if command == "page details":
@@ -557,7 +571,7 @@ class MainPage(webapp2.RequestHandler):
         if command == "get annotations":
             return self.annotation_dump()
         if command == "page links":
-            return self.page_links()
+            return self.get_page_links()
         # Admin commands
         if user not in project.admins:
             return self.status("Access denied.")

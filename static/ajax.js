@@ -173,12 +173,8 @@ function buttonAddPage()
     );
 }
 
-function listPages(projectName)
+function listPages()
 {
-	document.getElementById('navigation').innerHTML = 
-	    '/end?command=page_links'
-        + '&project_name=' + project;
-
     var links = document.getElementById('links');
     links.innerHTML = '';
 
@@ -217,28 +213,33 @@ function saveAnnotations()
 
 function pingForAnnotations()
 {
-    for (var i = 0; i < annotations.length; i++)
-    {
-        jsonCall
-        (
-            'get_annotations',
-            'url=' + encodeURIComponent(currentPage),
-            (function(response)
+    jsonCall
+    (
+        'get_annotations',
+        'url=' + encodeURIComponent(currentPage),
+        (function(response)
+        {
+            for (var i = 0; i < response.SOMETHING.length; i++)
             {
-                for (var i = 0; i < response.SOMETHING.length; i++)
-                {
-                    callback
-                    (
-                        response.SOMETHING[i].x_pos,
-                        response.SOMETHING[i].y_pos,
-                        response.SOMETHING[i].element_id,
-                        response.SOMETHING[i].message
-                    )
-                }
-            }),
-            displayServerError
-        );
-    }
+                callback
+                (
+                    response.SOMETHING[i].x_pos,
+                    response.SOMETHING[i].y_pos,
+                    response.SOMETHING[i].element_id,
+                    response.SOMETHING[i].message
+                )
+            }
+        }),
+        displayServerError
+    );
+}
+
+function ping()
+{
+    pingForAnnotations();
+    listPages();
+
+    window.setTimeout(ping, 100);
 }
 
 

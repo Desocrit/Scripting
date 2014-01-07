@@ -67,6 +67,9 @@ and y position are all saved, for access via Page Details.
 project_name=x&url=x*command=Get Annotations&output_type=json
 Gets a list of annotations only.
 
+project_name=x&url=x*command=Get page links
+Gets a list of page links only.
+
 Optionally:
 
 output_type=html output_type=json
