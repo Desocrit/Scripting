@@ -438,6 +438,17 @@ class MainPage(webapp2.RequestHandler):
         for page in pages:
             self.response.write("<p>" + str(cgi.escape(page.url) + "</p>"))
 
+    def get_page_links(self):
+        if self.output_type == 'html':
+            return self.page_links(self)
+        if self.output_type == 'json':
+            project_name = self.request.get('project_name')
+            pages_query = Page.query(
+                ancestor=ndb.Key("Project", project_name)).order(-Page.created)
+            pages = pages_query.fetch()
+            self.json['pages'] = [page.url for page in pages]
+            return self.status('success')
+
     def annotate(self):
         ''' Annotates a position in the page. Updates existing annotation
             if the annotation already exists. '''
@@ -560,7 +571,7 @@ class MainPage(webapp2.RequestHandler):
         if command == "get annotations":
             return self.annotation_dump()
         if command == "page links":
-            return self.page_links()
+            return self.get_page_links()
         # Admin commands
         if user not in project.admins:
             return self.status("Access denied.")
