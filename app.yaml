@@ -12,7 +12,7 @@ handlers:
   static_files: index.html
   upload: index.html
 
-- url: /.*
+- url: /end
   script: server.application
   
 libraries:

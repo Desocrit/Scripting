@@ -163,12 +163,14 @@ class MainPage(webapp2.RequestHandler):
             page['versions'] = versions
         self.json['pages'] = pages
 
-    def page_to_json(self, project_name, page):
+    def page_to_json(self, project_name, page, latest_only=False):
         ''' Converts a page, as well as all saved annotations, to json '''
         json = {'url': str(page.url), 'date_created': str(page.created)}
         json['creator'] = str(page.creator)
         versions = []
-        for v in Version.query(ancestor=page.key).fetch():
+        query = Version.query(ancestor=page.key)
+        query = query.order(-Version.time_added)
+        for v in query.fetch(1) if latest_only else query.fetch():
             version = {'id': str(v.v_id)}
             version['date_created'] = str(v.time_added)
             version['creator'] = str(v.creator)
@@ -257,11 +259,15 @@ class MainPage(webapp2.RequestHandler):
     def complete_href(self, url, href):
         ''' Checks a given href, and appends to the current url if needed '''
         if not href:
-            return
+            return ""
         elif href[0:2] == "//":
             href = re.match("[^/]*://", url).group() + href[2:]
         elif href[0] == '/':
-            href = re.match("https?://[^/]*/", url).group() + href[1:]
+            try:
+                href = re.match("https?://[^/]*/", url).group() + href[1:]
+            except:
+                self.response.write(url);
+                raise
         elif not re.match("https?://", href):
             href = url + href
         return href
@@ -321,6 +327,7 @@ class MainPage(webapp2.RequestHandler):
             if css_id:
                 html = sub(re.escape(css_url),
                            current_url + "css?id=" + str(css_id), html)
+        '''
         ## Insert and id into all tags that dont contain one
         all_tags = re.findall("<[^/!].*?>", html)
         i = 0
@@ -345,14 +352,14 @@ class MainPage(webapp2.RequestHandler):
             proxy_url = re.match("https?://[^/]*/", self.request.url).group()
             proxy_url += "end?"+urllib.urlencode(commands)
             html = sub(re.escape(orig_href), proxy_url, html, 1)
+        '''
         # Add a new version at the current time
         vid = Version.query().count()
         version = Version(parent=page.key, id=vid, v_id=vid, creator=user)
         version.contents = sub(r'(?i)<script.*?</script>{1}?', "", html)
         version.css_ids = [ci for ci in css_ids if ci]
         version.put()
-        self.status('success')
-        return
+        return self.status('success')
 
     def view_page(self):
         ''' Views the stored HTML for the page. Images and css not included'''
