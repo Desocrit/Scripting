@@ -32,9 +32,9 @@
 				<h2 id="main_title" class="inline">powered by <span class="emphasise">Social Browser</span></h2>
 				<!-- Project- and system-specific menu items -->
 				<ul id="menu" class="menu">
-					<li>Switch Project</li>
+					<li onclick="switchProject();">Switch Project</li>
 					<li onclick="createProject();">Create Project</li>
-					<li>Delete Project</li>
+					<li onclick-"deleteProject();">Delete Project</li>
 					<li id="navbutton" class="menuitem">Hide Sidebar</li>
 				</ul>
 			</div>
@@ -44,7 +44,7 @@
 					<li>Logout</li>
 				</ul>
 			</div>
-			<input type="text" id="search"></input>
+			<input type="text" id="search" onkeydown="if (event.keyCode == 13) getPage(document.getElementById('search').value);"></input>
 
 		</div>
 	</div>
