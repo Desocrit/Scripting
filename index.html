@@ -35,7 +35,7 @@
 					<li>Switch Project</li>
 					<li>Create Project</li>
 					<li>Delete Project</li>
-					<li id="navbutton" class="menuitem" onclick="switchNavbar()">Hide Sidebar</li>
+					<li id="navbutton" class="menuitem">Hide Sidebar</li>
 				</ul>
 			</div>
 			<div id="userMenu">
@@ -84,7 +84,7 @@
 			<li>User1</li>
 			<li>User123</li>
 		</div>
-		<iframe id="page_holder" seamless sandbox="allow-same-origin allow-forms" src="http://en.wikipedia.org"></iframe>
+		<iframe id="page_holder" seamless sandbox="allow-same-origin allow-forms" src="/end?url=http%3A%2F%2Fwww.google.co.uk&project_name=default_project&command=View+Page"></iframe>
 
 		<span id="backbutton" onclick="window.frames.history.back(-1);">BACK</span>	
 		<div id="toolbar"></div>	
@@ -95,7 +95,7 @@
 			<ul class="menu">
 				<script text="text/javascript">url = document.getElementById('page_holder').src;</script>
 				<li onclick="buttonAddPage(url,currentProject);">Add Page</li>
-				<li id="test">Edit History</li>
+				<li>Edit History</li>
 				<li>Delete Page</li>
 				<li>Page Details</li>
 				<li>Stuff</li>
