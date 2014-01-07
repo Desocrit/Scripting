@@ -33,6 +33,13 @@ $( document ).ready(function() {
 		}
 	})
 
+	$("#logout_button").click(function(event) {
+		$("#front_page").css({top: "0"}).animate({opacity: 1}, 500);
+		$("#container").animate({opacity: 0}, 500).css({visibility: "hidden"});
+		$("header").animate({top: '-97px'}, 500);
+		$("footer").animate({bottom: '-50px'}, 500);
+
+	});
 
 	$("#login_button").click(function(event) {
 		$("#front_page").animate({opacity: 0.0}).css({top: "-120%"}, 500);
