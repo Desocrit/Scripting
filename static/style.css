@@ -64,22 +64,24 @@ li, p, span {
 header
 {
 	position: fixed;
-	top: 0;
+	top: -97px;
 	width: 100%;
 	height: 97px;
 }
 
-#main_title, #user_name {
-	color: #536E79;
+#main_title, #user_name, .title {
+	color: #6a6a6a;
 	font-style: italic;
 }
 
-#main_title .emphasise, #user_name .emphasise {
+#main_title .emphasise, #user_name .emphasise, .title .emphasise {
 	font-style: normal;
-	color: #00222F;
+	color: #536E79;
 	font-size: 1.5em;
 	margin-left: 0.3em;
 }
+
+
 
 .inline {
 	display: inline;
@@ -112,7 +114,7 @@ header
 footer 
 {
 	position: fixed;
-	bottom: 0;
+	bottom: -50px;
 	width: 100%;
 	height:  50px;
 }
@@ -188,6 +190,7 @@ header, footer {
 
 #container {
 	position: fixed;
+	visibility: hidden;
 	width: 100%;
 	left: 0;
 	right: 0;
@@ -315,6 +318,70 @@ background-image: linear-gradient(to bottom, rgba(255, 255, 255, 1) 0%, rgba(255
 	top:20px;
 	width:80%;
 	margin: auto;
+}
+
+#front_page {
+	position: absolute;
+	background: -moz-radial-gradient(center, ellipse cover, rgba(255,255,255,0) 0%, rgba(255,255,255,0.9) 80%, rgba(255,255,255,1) 100%), url("images/hexellence.png"), #fff; /* FF3.6+ */
+	background: -webkit-gradient(radial, center center, 0px, center center, 100%, color-stop(0%,rgba(255,255,255,0)), color-stop(80%,rgba(255,255,255,0.9)), color-stop(100%,rgba(255,255,255,1))), url("images/hexellence.png"), #fff;  /* Chrome,Safari4+ */
+	background: -webkit-radial-gradient(center, ellipse cover, rgba(255,255,255,0) 0%,rgba(255,255,255,0.9) 80%,rgba(255,255,255,1) 100%), url("images/hexellence.png"), #fff; /* Chrome10+,Safari5.1+ */
+	background: -o-radial-gradient(center, ellipse cover, rgba(255,255,255,0) 0%,rgba(255,255,255,0.9) 80%,rgba(255,255,255,1) 100%), url("images/hexellence.png"), #fff; /* Opera 12+ */
+	background: -ms-radial-gradient(center, ellipse cover, rgba(255,255,255,0) 0%,rgba(255,255,255,0.9) 80%,rgba(255,255,255,1) 100%), url("images/hexellence.png"), #fff; /* IE10+ */
+	background: radial-gradient(ellipse at center, rgba(255,255,255,0) 0%,rgba(255,255,255,0.9) 80%,rgba(255,255,255,1) 100%), url("images/hexellence.png"), #fff; /* W3C */
+	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#00ffffff', endColorstr='#ffffff',GradientType=1 ); /* IE6-9 fallback on horizontal gradient */
+	background-position: 0px -30%, 0px -30%, 0px 0px;
+	width: 100%;
+	min-height: 100%;
+	top: 0;
+}
+
+#login_box {
+	-moz-box-sizing:    border-box;
+   	-webkit-box-sizing: border-box;
+    box-sizing:        border-box;
+	text-align: center;
+	position: relative;
+	width: 500px;
+	margin: 15% auto 0% auto;
+	min-height: 250px;
+	padding: 1em;
+	-webkit-box-shadow:inset 0px 0px 10px 3px rgba(0,0,0,0.4);
+	box-shadow:inset 0px 0px 10px 3px rgba(0,0,0,0.4);
+	background-color: rgba(0,0,0,0.1);
+	 -webkit-border-radius: 10px;
+    -moz-border-radius: 10px;
+    border-radius: 10px;
+}
+
+#login_box h2 {
+	font-size: 2em;
+}
+
+#login_button
+{
+	font-family: 'OpenSans-Regular';
+	font-size: 1.5em;
+	color: #6E3C05;
+	cursor: pointer;
+	padding: 0.5em 1em;
+	width: 300px;
+	margin: 1em auto;
+	background-color: #FFEBD6;
+	border: 1px solid #FFCA91;
+	border-radius: 5px;
+}
+
+#login_button:hover
+{
+	
+}
+
+#please_login {
+	font-family: 'Chunkfive';
+	text-transform: lowercase;
+	font-size: 1.2em;
+	margin-top: 1em;
+	color: #616161;
 }
 
 
