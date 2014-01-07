@@ -327,7 +327,6 @@ class MainPage(webapp2.RequestHandler):
             if css_id:
                 html = sub(re.escape(css_url),
                            current_url + "css?id=" + str(css_id), html)
-        '''
         ## Insert and id into all tags that dont contain one
         all_tags = re.findall("<[^/!].*?>", html)
         i = 0
@@ -340,6 +339,7 @@ class MainPage(webapp2.RequestHandler):
                     str(i) + '"'+tag[end:]
                 html = sub(re.escape(tag), newtag, html, 1)
                 i += 1
+        '''
         # Replace all links with server requests
         all_links = re.findall("<a.*?href.*?>", html)
         for link in all_links:
