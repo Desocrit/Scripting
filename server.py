@@ -545,7 +545,8 @@ class MainPage(webapp2.RequestHandler):
         if command == "update page":
             return self.add_page(True)
         if command == "view page":
-            return self.view_page()  # If page exists.
+            self.view_page()  # If page exists.
+            return True
         if command == "view or add page":
             return self.view_or_add()
         if command == "page details":
