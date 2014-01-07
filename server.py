@@ -5,6 +5,7 @@ from google.appengine.api import users
 from google.appengine.ext import ndb
 
 from re import sub
+from json import dumps as dump
 
 import webapp2
 import re
@@ -119,22 +120,26 @@ class Project(ndb.Model):
 
 class MainPage(webapp2.RequestHandler):
 
+    # Status stuff
+
     def warning(self, message):
         ''' Adds a warning to the output.
             This will be less urgent than an error. '''
-        if not self.json['warnings']:
+        if not 'warnings' in self.json.keys():
             self.json['warnings'] = []
             if self.output_type.lower() == "html":
                 self.response.write("<p>Warnings:</p>")
         self.json['warnings'].append(message)
         if self.output_type.lower() == "html":
-                self.response.write("message")
+                self.response.write(message)
 
     def status(self, message):
         ''' Sets the project status '''
         self.json['status'] = message
         if self.output_type.lower() == "html" and message != 'success':
             self.response.write("<p><h1>"+message+"</h1></p><hr>")
+
+    # JSON stuff
 
     def project_to_json(self, project):
         ''' Shows details of a project, in json form.
@@ -151,7 +156,7 @@ class MainPage(webapp2.RequestHandler):
             pages.append(page)
             versions = []
             for v in Version.query(ancestor=child.key).fetch():
-                version = {'id': str(v.id)}
+                version = {'id': str(v.v_id)}
                 version['date_created'] = str(v.time_added)
                 version['creator'] = str(v.creator)
                 versions.append(version)
@@ -198,6 +203,33 @@ class MainPage(webapp2.RequestHandler):
             self.response.write("Feature unavailable")
             return False
         return True
+        
+    def annotation_dump(self):
+        ''' Provides a list of annotations '''
+        if self.output_type.lower() != 'json':
+            self.response.write("Feature unavailable")
+            return False
+        project_name = self.request.get('project_name', DEFAULT_PROJECT_NAME)
+        url = self.request.get('url')
+        if not url:
+            self.status("Url not provided")
+        page = ndb.Key(Project, project_name, Page, url)
+        ver = Version.query(ancestor=page)
+        ver = ver.order(-Version.time_added).fetch(1)[0]
+        annotations = []
+        for a in Annotation.query(ancestor=ver.key):
+            annotation = {'creator': str(a.creator)}
+            annotation['x_pos'] = str(a.x_pos)
+            annotation['y_pos'] = str(a.y_pos)
+            vkey = ndb.Key(Project, project_name, Page, page.url,
+                           Version, ver.v_id, Annotation, a.element_id)
+            latest = AnnotationVersion.query(ancestor=vkey)
+            latest = latest.order(-AnnotationVersion.time_added)
+            latest = latest.fetch(1)[0]
+            annotation['contents'] = latest.contents
+            annotations.append(annotation)
+        self.json['annotations'] = annotations
+        self.status('success')
 
     def create_project(self, project_name):
         ''' Creates a new project, with the current user as admin & member'''
@@ -225,7 +257,7 @@ class MainPage(webapp2.RequestHandler):
     def complete_href(self, url, href):
         ''' Checks a given href, and appends to the current url if needed '''
         if not href:
-            href = None
+            return
         elif href[0:2] == "//":
             href = re.match("[^/]*://", url).group() + href[2:]
         elif href[0] == '/':
@@ -285,8 +317,11 @@ class MainPage(webapp2.RequestHandler):
         css_urls = [self.get_href(h) for h in hrefs if is_stylesheet(h)]
         css_ids = [self.add_css(self.complete_href(url, c)) for c in css_urls]
         current_url = re.match("https?://[^/]*/", self.request.url).group()
-        for (url, id) in zip(css_urls, css_ids):
-            html = sub(re.escape(url), current_url + "css?id=" + str(id), html)
+        for (css_url, css_id) in zip(css_urls, css_ids):
+            if css_id:
+                html = sub(re.escape(css_url),
+                           current_url + "css?id=" + str(css_id), html)
+        ## Insert and id into all tags that dont contain one
         all_tags = re.findall("<[^/!].*?>", html)
         i = 0
         for tag in all_tags:
@@ -294,15 +329,27 @@ class MainPage(webapp2.RequestHandler):
                 end = -1
                 if tag[-2] == '/':
                     end = -2
-                newtag = tag[0:end] + ' id="ServerAddedTag'+str(i)+'"'+tag[end:]
+                newtag = tag[0:end] + ' id="ServerAddedTag' + \
+                    str(i) + '"'+tag[end:]
                 html = sub(re.escape(tag), newtag, html, 1)
                 i += 1
-        
+        # Replace all links with server requests
+        all_links = re.findall("<a.*?href.*?>", html)
+        for link in all_links:
+            orig_href = self.get_href(link)
+            if not orig_href:
+                continue
+            href = self.complete_href(url, orig_href)
+            commands = {"url": href, "command": "View or Add Page",
+                        "project_name": self.request.get('project_name')}
+            proxy_url = re.match("https?://[^/]*/", self.request.url).group()
+            proxy_url += "end?"+urllib.urlencode(commands)
+            html = sub(re.escape(orig_href), proxy_url, html, 1)
         # Add a new version at the current time
         vid = Version.query().count()
         version = Version(parent=page.key, id=vid, v_id=vid, creator=user)
         version.contents = sub(r'(?i)<script.*?</script>{1}?', "", html)
-        version.css_ids = css_ids
+        version.css_ids = [ci for ci in css_ids if ci]
         version.put()
         self.status('success')
         return
@@ -318,12 +365,19 @@ class MainPage(webapp2.RequestHandler):
             if not page:
                 raise Exception
         except:
-            return self.status("Page not found.")
+            return False
         # Grab the latest version of the page.
         latest = Version.query(ancestor=page.key)
         latest = latest.order(-Version.time_added).fetch()
         self.response.write(latest[0].contents)
         return True
+
+    def view_or_add(self):
+        if self.view_page():
+            return
+        else:
+            self.add_page()
+            self.view_page()
 
     def roll_back(self):
         ''' Rolls back a page to the previous version. Requires admin access'''
@@ -356,9 +410,9 @@ class MainPage(webapp2.RequestHandler):
     def delete_page(self, page):
         if not page.get:
             return False
-        for version in Version.query(ancestor=page.key).fetch():
+        for version in Version.query(ancestor=page).fetch():
             self.delete_version(version.key)
-        page.key.delete()
+        page.delete()
 
     def page_links(self):
         ''' Generates list of pages '''
@@ -375,8 +429,8 @@ class MainPage(webapp2.RequestHandler):
             self.response.write(
                 "<b>No urls found for %s<BR>" % project_name)
         for page in pages:
-            self.response.write("<p>" + self.response.write(str(cgi.escape(page.url)) + "</p>"))
-		
+            self.response.write("<p>" + str(cgi.escape(page.url) + "</p>"))
+
     def annotate(self):
         ''' Annotates a position in the page. Updates existing annotation
             if the annotation already exists. '''
@@ -487,11 +541,15 @@ class MainPage(webapp2.RequestHandler):
             return self.add_page(True)
         if command == "view page":
             return self.view_page()  # If page exists.
+        if command == "view or add page":
+            return self.view_or_add()
         if command == "page details":
             return self.page_dump()
         if command == "annotate":
             return self.annotate()
-        if command == "page_links":
+        if command == "get annotations":
+            return self.annotation_dump()
+        if command == "page links":
             return self.page_links()
         # Admin commands
         if user not in project.admins:
@@ -507,8 +565,10 @@ class MainPage(webapp2.RequestHandler):
         if command == "roll back page":
             return self.roll_back()
         if command == "delete page":
-            if not self.delete_page(ndb.Key("Project", project_name,
-                                            "Page", self.request.get('url'))):
+            if self.delete_page(
+                ndb.Key(
+                    "Project", project_name,
+                    "Page", self.request.get('url'))) is False:
                 self.status("Page not found.")
             return
         if command == "make public":
@@ -591,7 +651,7 @@ class MainPage(webapp2.RequestHandler):
             self.display_login()
             self.response.write("</body></html>")
         if self.output_type.lower() == 'json':
-            self.response.write(repr(self.json))
+            self.response.write(dump(self.json, indent=4))
 
 
 class CSSPage(webapp2.RequestHandler):
