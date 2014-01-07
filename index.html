@@ -35,6 +35,7 @@
 					<li>Switch Project</li>
 					<li>Create Project</li>
 					<li>Delete Project</li>
+					<li id="navbutton" class="menuitem" onclick="switchNavbar()">Hide Sidebar</li>
 				</ul>
 			</div>
 			<div id="userMenu">
@@ -43,7 +44,7 @@
 					<li>Logout</li>
 				</ul>
 			</div>
-						<input type="text" id="search"></input>
+			<input type="text" id="search"></input>
 
 		</div>
 	</div>
@@ -51,7 +52,7 @@
 <div id ="container">
 	<div id="sidebar">
 		<h1>Bookmarks</h1>
-		<span id="navbutton" class="menuitem" onclick="switchNavbar()">hide navbar</span>
+		
 		<ul>
 			<li>Dhsjadsahdkshajkdsad</li>
 			<li>dsahdskadhjskhadjksad</li>
@@ -82,24 +83,24 @@
 		<ul>
 			<li>User1</li>
 			<li>User123</li>
-	</div>
-	<iframe id="page_holder" seamless sandbox="allow-same-origin allow-forms" src="/end?url=http%3A%2F%2Fwww.google.co.uk&project_name=default_project&command=View+Page"></iframe>
+		</div>
+		<iframe id="page_holder" seamless sandbox="allow-same-origin allow-forms" src="http://en.wikipedia.org"></iframe>
 
-	<span id="backbutton" onclick="window.frames['page_holder'].history.go(-1);">BACK</span>	
-	<div id="toolbar"></div>	
-</div>
-<footer>
-	<!-- Page-specific menu items -->
-	<div id="menu2" >
-		<ul class="menu">
-		<script text="text/javascript">url = document.getElementById('page_holder').src;</script>
-		<li onclick="buttonAddPage(url,currentProject);">Add Page</li>
-		<li>Edit History</li>
-		<li>Delete Page</li>
-		<li>Page Details</li>
-		<li>Stuff</li>
-	</ul>
+		<span id="backbutton" onclick="window.frames.history.back(-1);">BACK</span>	
+		<div id="toolbar"></div>	
 	</div>
-</footer>
+	<footer>
+		<!-- Page-specific menu items -->
+		<div id="menu2" >
+			<ul class="menu">
+				<script text="text/javascript">url = document.getElementById('page_holder').src;</script>
+				<li onclick="buttonAddPage(url,currentProject);">Add Page</li>
+				<li id="test">Edit History</li>
+				<li>Delete Page</li>
+				<li>Page Details</li>
+				<li>Stuff</li>
+			</ul>
+		</div>
+	</footer>
 </body>
 </html>
