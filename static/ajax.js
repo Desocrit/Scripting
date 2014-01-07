@@ -152,6 +152,10 @@ function createProject(){
     }
 }
 
+function switchProject(){
+    
+}
+
 function buttonAddPage()
 {
     var url = document.getElementById('search').value;
