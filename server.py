@@ -191,7 +191,7 @@ class MainPage(webapp2.RequestHandler):
         json['versions'] = versions
         self.json = dict(self.json, **json)
 
-    def page_dump(self):
+    def page_dump(self, latest_only=False):
         ''' Provides information on the contents of a page '''
         project_name = self.request.get('project_name', DEFAULT_PROJECT_NAME)
         url = self.request.get('url')
@@ -200,7 +200,7 @@ class MainPage(webapp2.RequestHandler):
         page = ndb.Key(Project, project_name, Page, url).get()
         self.status('success')
         if self.output_type.lower() == 'json':
-            self.page_to_json(project_name, page)
+            self.page_to_json(project_name, page, latest_only)
         else:
             self.response.write("Feature unavailable")
             return False
@@ -369,10 +369,8 @@ class MainPage(webapp2.RequestHandler):
         # Try to get the page. Return if it is not found.
         try:
             page = ndb.Key("Project", project_name, "Page", url).get()
-            if not page:
-                raise Exception
         except:
-            return False
+            return self.status("Page not found")
         # Grab the latest version of the page.
         latest = Version.query(ancestor=page.key)
         latest = latest.order(-Version.time_added).fetch()
@@ -551,7 +549,9 @@ class MainPage(webapp2.RequestHandler):
         if command == "view or add page":
             return self.view_or_add()
         if command == "page details":
-            return self.page_dump()
+            return self.page_dump(latest_only=False)
+        if command == "latest page details":
+            return self.page_dump(latest_only=True)
         if command == "annotate":
             return self.annotate()
         if command == "get annotations":

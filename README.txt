@@ -1,0 +1,80 @@
+Simple 'get' server. Responses are currently in API form. 
+Later forks will simply return success or failure mesages.
+
+To use, simply 'get' with any of the following options:
+
+project_name=x
+View the api for a given project.
+
+project_name=x&command=Create Project
+Creates a new project with the given name. Creator will
+be added to users list and given admin rights.
+
+project_name=x&command=Switch Project
+Swtiches to the given project. Only needed for the API.
+
+project_name=x&command=Delete Project
+Deletes a project. Requires admin rights.
+
+project_name=x&command=Make Public
+Makes a project public, i.e. anyone can access it.
+
+project_name=x&command=Make Private
+Makes a project public, i.e. permission is needed to access it.
+
+project_name=x&user_name=y&command=Add Access
+Grants 'view' access to the project.
+
+project_name=x&user_name=y&command=Remove Access
+Revokes 'view' access to the project.
+
+project_name=x&user_name=y&command=Add Admin
+Grants admin privelidges to the project.
+
+project_name=x&user_name=y&command=Remove Admin
+Revokes admin privelidges to the project.
+
+project_name=x&url=y&command=Add or Replace Page
+Adds a page to the project. Alternatively, if the page already exists,
+it will be replaced with the latest live version, and all comments
+ will be deleted.
+ 
+project_name=x&url=y&command=Update Page
+Updates the page to the latest live version. Comments will be kept 'as-is'.
+This may cause some errrors. If the page is not in the project,
+it will be added.
+
+project_name=x&url=y&command=Latest Page Details
+Gives full details of the page, including url, and creator, 
+as well as details of every version uploaded, all annotations for
+each version and versions of each annotation. Currently only works
+for JSON.
+
+project_name=x&url=y&command=Page Details
+Gives full details of the page, including url, and creator, 
+as well as details of every version uploaded, all annotations for
+each version and versions of each annotation. Currently only works
+for JSON.
+
+
+project_name=x&url=y&command=Roll Back Page
+Deletes the latest version of a page. Admin privelidges required.
+If only one version is stored, this will throw an error
+
+project_name=x&url=y&command=View Page
+Views the saved html for a page.
+
+project_name=x&url=y&command=Delete Page
+Removed a page from the project
+
+project_name=x&url=y&command=Annotate&Message=z&x_pos=m&y_pos=n
+Creates an annotation on the given page. Message, x position,
+and y position are all saved, for access via Page Details.
+
+project_name=x&url=x*command=Get Annotations&output_type=json
+Gets a list of annotations only.
+
+Optionally:
+
+output_type=html output_type=json
+Determines the type of output provided.
