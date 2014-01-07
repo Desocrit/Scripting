@@ -4,43 +4,58 @@
     var currentElement;
     var e;
 
-    window.oncontextmenu = (function(e)
+    window.oncontextmenu = (function(_e)
     {
+        if (_e.toElement.isAnnotation) return false;
+
         menu.style.display = 'block';
-        menu.style.left    = e.layerX + 'px';
-        menu.style.top     = e.layerY + 'px';
-        currentElement     = e.toElement;
-        window.e           = e;
+        menu.style.left    = _e.layerX + 'px';
+        menu.style.top     = _e.layerY + 'px';
+        currentElement     = _e.toElement.id;
+        e                  = _e;
+
+        return false;
     });
 
-    document.onload = (function()
+    var makeAnnotation = (function(x, y, el, text)
     {
-        menu = document.createElement('div');
-        menu.style.display  = 'none';
-        menu.style.width    = '300px';
-        menu.style.position = 'absolute';
+        var annotation = document.createElement('div');
 
-            var a       = document.createElement('a');
-            a.onclick   = addAnnotation;
-            a.innerText = 'Add Annotation MoFo';
-            menu.appendChild(a);
+        annotation.style.display    = 'block';
+        annotation.style.width      = '300px';
+        annotation.style.position   = 'absolute';
+        annotation.style.left       = x + 'px';
+        annotation.style.top        = y + 'px';
+        annotation.style.background = 'rgb(255, 255, 150)';
+        annotation.style.border     = '1px solid black';
+        annotation.innerText        = text;
+        annotation.contentEditable  = true;
+        annotation.subjectElement   = document.getElementById(el);
+        annotation.isAnnotation     = true;
 
-        document.appendChild(menu);
+        menu.style.display = 'none';
+        document.body.appendChild(annotation);
+        window.parent.annotations.push(annotation);
     });
 
     var addAnnotation = (function()
     {
-        var annotation = document.createElement('div');
-
-        annotation.style.display   = 'block';
-        annotation.style.width     = '300px';
-        annotation.style.position  = 'absolute';
-        annotation.style.left      = e.layerX + 'px';
-        annotation.style.top       = e.layerY + 'px';
-        annotation.contentEditable = true;
-        annotation.subjectElement  = currentElement;
-
-        document.appendChild(annotation);
-        window.parent.annotations.push(annotation);
+        makeAnnotation(e.layerX, e.layerY, currentElement, '');
     });
+
+    menu = document.createElement('div');
+    menu.style.display  = 'none';
+    menu.style.width    = '300px';
+    menu.style.position = 'absolute';
+
+        var a       = document.createElement('a');
+        a.onclick   = addAnnotation;
+        a.innerText = 'Add Annotation';
+        a.style.display = 'block';
+        a.style.background = 'red';
+        menu.appendChild(a);
+
+    document.body.appendChild(menu);
+
+    window.parent.setCallback(makeAnnotation);
 })();

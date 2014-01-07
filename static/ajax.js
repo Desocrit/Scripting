@@ -1,7 +1,8 @@
 var currentPage;
 var lastPing;
-var project;
+var project = 'default_project';
 var annotations = [];
+var callback;
 
 /**
  * Should display the main interface (called after successful login)
@@ -39,6 +40,11 @@ function displayCreatePage()
 function displayTimeoutError()
 {
     alert('Server be broken (timeout)');
+}
+
+function displayPageNotFound()
+{
+    alert('Page not found');
 }
 
 
@@ -115,29 +121,24 @@ function login()
     jsonCall('login', vars, displayMain, displayLoginError);
 }
 
-function getPage()
+function getPage(url)
 {
-    document.getElementById('page_holder').src =
+    var frame = document.getElementById('page_holder');
+    
+    frame.src =
           '/end?command=View+Page'
-        + '&url=' + encodeURIComponent(document.getElementById('go_button').value)
+        + '&url=' + encodeURIComponent(url)
         + '&project_name=' + project;
-}
 
-function checkForUpdates()
-{
-    jsonCall
-    (
-        'edits', 'url=' + currentPage + '&since=' + lastPing,
-        (function(edits)
-        {
-            for (var i in edits.edits)
-            {
-                if (i == 'length') continue;
+    currentPage = url;
 
-                
-            }
-        })
-    );
+    frame.onload = (function()
+    {
+        var doc = frame.contentWindow.document;
+        var s   = doc.createElement('script');
+        s.src = '/static/inject.js';
+        doc.head.appendChild(s);
+    });
 }
 
 function createProject(newName){
@@ -146,13 +147,17 @@ function createProject(newName){
     jsonCall("Switch+Project",null,function(){},displayServerError);
 }
 
-function buttonAddPage(url, projectName)
+function buttonAddPage()
 {
-    url = url.replace(/:/g,'%3A');
-    url = url.replace(/\//g,'%2F');
-    project = projectName;
-    jsonCall("Add+or+Replace+Page", "url="+url, displayAddPage, displayServerError);
+    var url = document.getElementById('search').value;
 
+    jsonCall
+    (
+        "Add+or+Replace+Page",
+        "url="+url,
+        (function(){getPage(url);}),
+        displayPageNotFound
+    );
 }
 
 function listPages(projectName)
@@ -170,10 +175,43 @@ function saveAnnotations()
         (
               'Annotate',
               'message=' + annotations[i].innerText
+            + '&url=' + encodeURIComponent(currentPage)
             + '&element_id=' + annotations[i].subjectElement.id
-            + '&x_pos=0&y_pos=0',
+            + '&x_pos=1&y_pos=1',
             (function() { }),
             displayServerError
         );
     }
+}
+
+function pingForAnnotations()
+{
+    for (var i = 0; i < annotations.length; i++)
+    {
+        jsonCall
+        (
+            'get_annotations',
+            'url=' + encodeURIComponent(currentPage),
+            (function(response)
+            {
+                for (var i = 0; i < response.SOMETHING.length; i++)
+                {
+                    callback
+                    (
+                        response.SOMETHING[i].x_pos,
+                        response.SOMETHING[i].y_pos,
+                        response.SOMETHING[i].element_id,
+                        response.SOMETHING[i].message
+                    )
+                }
+            }),
+            displayServerError
+        );
+    }
+}
+
+
+function setCallback(cb)
+{
+    callback = cb;
 }
