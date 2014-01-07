@@ -141,10 +141,15 @@ function getPage(url)
     });
 }
 
-function createProject(newName){
-    project = newName;
-    jsonCall("Create+Project",null,displayCreatePage, displayServerError);
-    jsonCall("Switch+Project",null,function(){},displayServerError);
+function createProject(){
+    var newName = prompt('Enter new project name:');
+    if(newName){
+        project = newName;
+        jsonCall("Create+Project",null,displayCreatePage, displayServerError);
+        jsonCall("Switch+Project",null,function(){},displayServerError);
+    } else {
+        alert('Project name required.');
+    }
 }
 
 function buttonAddPage()
