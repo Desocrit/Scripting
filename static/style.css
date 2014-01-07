@@ -133,6 +133,9 @@ header, footer {
 
 .menu 
 {
+	-moz-box-sizing:    border-box;
+   	-webkit-box-sizing: border-box;
+    box-sizing:        border-box;
 	position: relative;
 	top: -3px;
 	list-style: none;
@@ -143,10 +146,13 @@ header, footer {
 {
 	color: #6E3C05;
 	cursor: pointer;
-	padding: 5px 8px;
+	padding: 8px 8px;
 	background-color: #FFEBD6;
 	border: 1px solid #FFCA91;
-	border-radius: 5px;
+	 -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+    border-radius: 5px;
+	margin-right: 5px;
 	display: inline;
 }
 
@@ -155,6 +161,47 @@ header, footer {
 	color: #6E3C05 ;
 	background-color: #FFCA91;
 	border: 1px solid #FFEBD6;
+}
+
+.menu  li ul {
+	display: none;
+	position: absolute;
+	z-index: 10;
+	width: 100%;
+
+}
+
+.menu li ul li {
+	position: relative;
+	top: -3px;
+	 -webkit-border-radius: 0;
+    -moz-border-radius: 0;
+    border-radius: 0;
+	display: block;
+	border: none;	
+	border-top: 1px dotted #FFCA91;
+	border-left: 1px solid #FFCA91;
+	border-right: 1px solid #FFCA91;
+
+}
+
+.menu li ul li:hover {
+	border: none;
+	border-top: 1px dotted #FFCA91;
+	border-left: 1px solid #FFCA91;
+	border-right: 1px solid #FFCA91;
+}
+
+.menu li ul li:nth-of-type(1) {
+		border-top: 1px solid #FFCA91;
+
+}
+
+.menu li ul li:nth-last-of-type(1) {
+		border-bottom: 1px solid #FFCA91;
+	-webkit-border-radius: 0 0 5px 5px;
+	border-radius: 0 0 5px 5px;
+
 }
 
 

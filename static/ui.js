@@ -47,4 +47,14 @@ $( document ).ready(function() {
 		$("header").animate({top: '0'}, 500);
 		$("footer").animate({bottom: '0'}, 500);
 	});
+
+	$(".menu li").on('mouseenter', function() {
+		$(this).children('ul').fadeIn();
+	});
+
+	$(".menu li").on('mouseleave', function() {
+		$(this).children('ul').fadeOut();
+	});
+
+
 });
