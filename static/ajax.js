@@ -165,6 +165,24 @@ function listPages(projectName)
 	document.getElementById('navigation').innerHTML = 
 	    '/end?command=page_links'
         + '&project_name=' + project;
+
+    var links = document.getElementById('links');
+    links.innerHTML = '';
+
+    jsonCall
+    (
+        'page_links', '',
+        (function(response)
+        {
+            for (var i = 0; i < response.pages.length; i++)
+            {
+                var url = response.pages[i].url;
+
+                links.innerHTML += '<li><a href="' + url + '">' + url + '</a></li>';
+            }
+        }),
+        displayServerError
+    );
 }
 
 function saveAnnotations()
