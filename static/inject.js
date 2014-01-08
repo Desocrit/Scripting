@@ -37,8 +37,10 @@
         annotationContent.isAnnotation     - true;
         annotationWrap.contentEl           = annotationContent;
 
+
         var closeDiv = document.createElement('div');
         closeDiv.className = 'close';
+        closeDiv.uniqid = annotationWrap.uniqid;
         var closeX = document.createElement('span');
         closeX.className = 'closeX';
         closeX.innerHTML = 'x';
