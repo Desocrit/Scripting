@@ -480,7 +480,6 @@ class MainPage(webapp2.RequestHandler):
         for i in range(len(urls)):
             old_url = urls[i][0] + urls[i][1]
             new_url = urls[i][0] + changed_urls[i]
-            
             html = re.sub(re.escape(old_url), new_url, html)
         return html
 
@@ -624,7 +623,6 @@ class MainPage(webapp2.RequestHandler):
         redirect = self.request.get('redirect_url')
         user = users.get_current_user()
         if not redirect:
-            #redirect = self.request.url.split("/")[0] #doesn't work, returns http:
             redirect = "/"
             if self.request.get('project_name'):
                 redirect += self.request.get('project_name')
@@ -674,19 +672,18 @@ class MainPage(webapp2.RequestHandler):
             return self.get_page_links()
 
     def handle_commands(self, command, project_name):
-        ''' Handles any commands passed by http get. 
+        ''' Handles any commands passed by http get.
             Return True if you don't want the page to load afterwards.'''
         command = command.lower().replace("_", " ")
-
         # Login Commands
         if command in ['login', 'logout', 'smart login', 'get user']:
-            return self.handle_login(command);
+            return self.handle_login(command)
         # Temporary viewing commands.
         if command == 'temp view':
             return self.temp_get()
         if command == 'grab temp page':
             return self.get_temp_page()
-        
+
         # Project Selection Commands
         user = users.get_current_user()
         key = ndb.Key("Project", project_name)
@@ -820,7 +817,7 @@ class CSSPage(webapp2.RequestHandler):
             self.response.write("Malformed ID.")
         css = ndb.Key(CSS, css_id)
         self.response.write(css.get().contents)
-        
+
 
 application = webapp2.WSGIApplication([
     ('/end', MainPage),
