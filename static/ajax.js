@@ -249,7 +249,7 @@ function setCallback(cb)
 
 function isLoggedIn()
 {
-	jsonCall('get_user', null, function(){return true;}, function(){return false;});
+	jsonCall('get user', null, function(){return true;}, function(){return false;});
 	//return false;
 }
 
@@ -260,7 +260,7 @@ function writeUsername()
 
     jsonCall
     (
-        'get_user', null,
+        'get user', null,
         (function(response)
         {
             nameText.innerHTML = response.username;
