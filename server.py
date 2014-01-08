@@ -779,8 +779,13 @@ class MainPage(webapp2.RequestHandler):
         ''' Draws the main page, and handles any commands '''
         self.output_type = self.request.get('output_type', DEFAULT_OUTPUT_TYPE)
         self.json = {}
-        if self.output_type.lower() == "html":
-            self.response.write('<html><body>')
+
+        # This is only required for the dev pages, and they don't need
+        # to be compliant. But it was printing this out at inappropriate
+        # times so I removed
+        #if self.output_type.lower() == "html":
+            #self.response.write('<html><body>')
+
         project_name = self.request.get('project_name', DEFAULT_PROJECT_NAME)
         project = None
         command = self.request.get('command', None)
