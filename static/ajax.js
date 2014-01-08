@@ -230,18 +230,6 @@ function switchProject(project_name){
 
 function deleteProject(){
     var project_name = project;
-<<<<<<< HEAD
-    var confirm_delete = confirm("Are you sure you want to delete project " + project_name + "?");
-    if(confirm_delete) {
-        switchProject(project_name);
-        if(projects.length = 1) {
-            alert(projects.length + "Sorry you can't delete your only project, make another one first!");
-        } else {
-            jsonCall("Delete+Project",null,displayCreatePage, displayServerError);
-            listProjects();
-            switchProject(projects[0]);
-            alert("Project " + project_name + " deleted. Switched to " + project);
-=======
 
     if(projects.length == 1)
     {
@@ -267,7 +255,6 @@ function deleteProject(){
             alert("Project " + project_name + " deleted. Switched to " + newProject);
             switchProject(newProject);
             listProjects();
->>>>>>> 71320c4e245788d68dc21aba4e9ed6da26fc716a
         }
     }
 }
@@ -385,10 +372,10 @@ function pingForAnnotations()
                     }
                 }
             });
-load();
-}),
-displayServerError
-);
+            load();
+        }),
+        displayServerError
+    );
 }
 
 function ping()
@@ -476,22 +463,9 @@ function writeUsername()
 
 function tempView(url)
 {
-    /*
-    jsonCall
-    (
-        'temp view', 'url=' + url,
-        (function(){}),
-        function(){}
-<<<<<<< HEAD
-        );    
-=======
-    ); 
-    */
-
     document.getElementById('page_holder').src =
           '/end?command=Temp+View'
         + '&url=' + encodeURIComponent(url);   
->>>>>>> 71320c4e245788d68dc21aba4e9ed6da26fc716a
 }
 
 $(document).ready(function()
