@@ -216,6 +216,7 @@ function createProject(){
 
 function switchProject(project_name){
     project = project_name;
+    document.getElementById('project_name_el').innerHTML = project_name;
     listPages();
 }
 
@@ -242,7 +243,7 @@ function deleteProject(){
                     break;
                 }
             }
-            
+
             alert("Project " + project_name + " deleted. Switched to " + newProject);
             switchProject(newProject);
             listProjects();
@@ -380,7 +381,7 @@ function ping()
     window.setTimeout(ping, 5000);
 }
 
-function listProjects() {
+function listProjects(switchToFirst) {
 
     var projects_list = document.getElementById('project_list');
     jsonCall
@@ -389,6 +390,7 @@ function listProjects() {
         (function(response)
         {
             projects_list.innerHTML = '';
+            projects = [ ];
             
             if (response.admin_access.length > 0)    projects_list.innerHTML += '<li><b>Admin Access</b></li>';
             for (var i = 0; i < response.admin_access.length; i++)
@@ -417,6 +419,11 @@ function listProjects() {
                 projects.push(project);
 
                 projects_list.innerHTML += '<li onclick="switchProject(\'' + project + '\')">' + project + '</li>';
+            }
+
+            if (switchToFirst)
+            {
+                switchProject(projects[0]);
             }
         }),
         displayServerError
