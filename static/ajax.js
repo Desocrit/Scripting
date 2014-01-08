@@ -6,6 +6,7 @@ var callback = null;
 var userName;
 var lastResponse;
 var error = [ ];
+var projects;
 
 /**
  * Should display the main interface (called after successful login)
@@ -207,6 +208,7 @@ function createProject(){
         jsonCall("Create+Project",null,displayCreatePage, displayServerError);
         listProjects();
         switchProject(newName);
+        alert("project" + newName + " created!")
     } else {
         alert('Project name required.');
     }
@@ -222,8 +224,14 @@ function deleteProject(){
     var confirm_delete = confirm("Are you sure you want to delete project " + project_name + "?");
     if(confirm_delete) {
         switchProject(project_name);
+        if(projects.length = 1) {
+            alert("Sorry you can't delete your last project, make another one first!");
+        } else {
         jsonCall("Delete+Project",null,displayCreatePage, displayServerError);
-        switchProject("default_project");
+        listProjects();
+        switchProject(projects[0]);
+        alert("Project " + project_name + " deleted. Switched to " + project);
+        }
     }
 }
 
@@ -234,10 +242,11 @@ function buttonAddPage()
     jsonCall
     (
         "Add+or+Replace+Page",
-        "url="+url,
+        "url="+ encodeURIComponent(url),
         (function(){getPage(url);}),
         displayPageNotFound
     );
+
 }
 
 function listPages()
@@ -356,28 +365,30 @@ function ping()
 
 function listProjects() {
 
-    var projects = document.getElementById('project_list');
-
+    var projects_list = document.getElementById('project_list');
     jsonCall
     (
         'projects', '',
         (function(response)
         {
-            projects.innerHTML = '';
-             if (response.admin_access.length > 0)    projects.innerHTML += '<li><b>Admin Access</b></li>';
+            projects_list.innerHTML = '';
+             if (response.admin_access.length > 0)    projects_list.innerHTML += '<li><b>Admin Access</b></li>';
             for (var i = 0; i < response.admin_access.length; i++)
             {
                 var project = response.admin_access[i];
-
-                projects.innerHTML += '<li onclick="switchProject(\'' + project + '\')">' + project + '</li>';
+                projects.push(project);
+                projects_list.innerHTML += '<li onclick="switchProject(\'' + project + '\')">' + project + '</li>';
             }
-             if (response.user_access.length > 0)   projects.innerHTML += '<li><b>Member Access</b></li>';
+             if (response.user_access.length > 0)   projects_list.innerHTML += '<li><b>Member Access</b></li>';
             for (var i = 0; i < response.user_access.length; i++)
             {
                 var project = response.user_access[i];
+                projects.push(project);
 
-                projects.innerHTML += '<li onclick="switchProject(\'' + project + '\')">' + project + '</li>';
+                projects_list.innerHTML += '<li onclick="switchProject(\'' + project + '\')">' + project + '</li>';
             }
+
+            w
 
 
         }),
