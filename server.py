@@ -603,6 +603,15 @@ class MainPage(webapp2.RequestHandler):
         for page in Page.query(ancestor=project).fetch():
             self.delete_page(page.key)
 
+    def add_user(self):
+        user = self.request.get('user')
+        pn = self.request.get('project name', DEFAULT_PROJECT_NAME)
+        project = ndb.Key(Project, pn)
+        if not project.get():
+            return self.status("Project not found")
+        project.get().members.append(users.User(user))
+        return self.status('success')
+
     def handle_login(self, command):
         redirect = self.request.get('redirect_url')
         user = users.get_current_user()
@@ -664,6 +673,8 @@ class MainPage(webapp2.RequestHandler):
         # Login Commands
         if command in ['login', 'logout', 'smart login', 'get user']:
             return self.handle_login(command)
+        if command == 'add user':
+            return self.add_user()
         # Temporary viewing commands.
         if command == 'temp view':
             return self.temp_get()
