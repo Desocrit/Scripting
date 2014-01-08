@@ -205,6 +205,8 @@ function createProject(){
     if(newName){
         project = newName;
         jsonCall("Create+Project",null,displayCreatePage, displayServerError);
+        listProjects();
+        switchProject(newName);
     } else {
         alert('Project name required.');
     }
