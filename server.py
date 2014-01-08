@@ -87,7 +87,7 @@ class Annotation(ndb.Model):
     element_id = ndb.StringProperty()
     x_pos = ndb.IntegerProperty()
     y_pos = ndb.IntegerProperty()
-    uniqid = ndb.IntegerProperty()
+    uniqid = ndb.StringProperty()
 
 
 class Version(ndb.Model):
@@ -150,17 +150,14 @@ class MainPage(webapp2.RequestHandler):
 
     def get_projects_for_user(self, user):
         ''' Returns all the projects a user has access to '''
-                
         admin = []
         admin_projs = Project.query(Project.admins == user).fetch()
         for proj in admin_projs:
             admin.append(str(proj.name))
-            
         normal = []
         normal_projs = Project.query(Project.members == user).fetch()
         for proj in normal_projs:
             normal.append(str(proj.name))
-        
         self.json['user'] = str(user)
         self.json['admin_access'] = admin
         self.json['normal_access'] = normal
@@ -203,10 +200,11 @@ class MainPage(webapp2.RequestHandler):
             annotations = []
             for a in Annotation.query(ancestor=v.key).fetch():
                 annotation = {'creator': str(a.creator)}
+                annotation['uniqid'] = str(a.uniqid)
                 annotation['x_pos'] = str(a.x_pos)
                 annotation['y_pos'] = str(a.y_pos)
                 vkey = ndb.Key(Project, project_name, Page, page.url,
-                               Version, v.v_id, Annotation, a.element_id)
+                               Version, v.v_id, Annotation, a.uniqid)
                 latest = AnnotationVersion.query(ancestor=vkey)
                 latest = latest.order(-AnnotationVersion.time_added)
                 latest = latest.fetch(1)[0]
@@ -255,7 +253,7 @@ class MainPage(webapp2.RequestHandler):
             annotation['element_id'] = a.element_id
             annotation['uniqid'] = a.uniqid
             vkey = ndb.Key(Project, project_name, Page, page.url,
-                           Version, ver.v_id, Annotation, a.element_id)
+                           Version, ver.v_id, Annotation, a.uniqid)
             latest = AnnotationVersion.query(ancestor=vkey)
             latest = latest.order(-AnnotationVersion.time_added)
             latest = latest.fetch(1)[0]
@@ -480,7 +478,6 @@ class MainPage(webapp2.RequestHandler):
         for i in range(len(urls)):
             old_url = urls[i][0] + urls[i][1]
             new_url = urls[i][0] + changed_urls[i]
-            
             html = re.sub(re.escape(old_url), new_url, html)
         return html
 
@@ -526,15 +523,13 @@ class MainPage(webapp2.RequestHandler):
         message = self.request.get('message')
         element_id = self.request.get('element_id')
         x_pos, y_pos = self.request.get('x_pos'), self.request.get('y_pos')
-        uniqid = self.request.get("uniqid")
+        uid = self.request.get("uniqid")
         try:
             x_pos = int(x_pos)
             y_pos = int(y_pos)
-            if uniqid:
-                uniqid = int(uniqid)
         except:
             return self.status("Arguments cannot be converted to integers.")
-        if not x_pos or not y_pos or not message or not element_id:
+        if not x_pos or not y_pos or not message or not element_id or not uid:
             return self.status('Missing parameters. See readme for details.')
         # Find the latest version of the url.
         project_name = self.request.get('project_name', DEFAULT_PROJECT_NAME)
@@ -544,35 +539,24 @@ class MainPage(webapp2.RequestHandler):
             return self.status("Page not found")
         latest = Version.query(ancestor=key)
         latest = latest.order(-Version.time_added).fetch(1)[0]
-        
-        if uniqid:
-            # Fetch and update annotation
-            annotation = Annotation.query(
-                Annotation.uniqid == uniqid,
-                ancestor=latest.key
-            ).fetch()
-            annotation.x_pos = x_pos
-            annotation.y_pos = y_pos
-            annotation.put()
-        if not uniqid or not annotation:
-            # Create and attach an annotation.
-            user = users.get_current_user()
-            key = latest.key
-            uniqid = Annotation.query().count()
-            annotation = Annotation(id=uniqid, element_id=element_id,
-                                    parent=key, creator=user,
-                                    x_pos=x_pos, y_pos=y_pos,
-                                    uniqid=uniqid)
-            annotation.put()
-        if isinstance(annotation, list):
+        annotation = Annotation.query(Annotation.uniqid == uid,
+            ancestor=latest.key).fetch()
+        user = users.get_current_user()
+        if annotation:
             key = annotation[0].key
         else:
-            key = annotation.key
+            # Create and attach an annotation.
+            key = latest.key
+            uniqid = Annotation.query().count()
+            annotation = Annotation(id=uid, element_id=element_id,
+                                    uniqid=uid, parent=key, creator=user,
+                                    x_pos=x_pos, y_pos=y_pos)
+            annotation.put()
+            key=annotation.key
         av_id = AnnotationVersion.query().count()
-        version = AnnotationVersion(
-            parent=key, id=av_id, contents=str(message))
-        version.av_id = av_id
-        version.creator = users.get_current_user()
+        version = AnnotationVersion(parent=key, id=av_id,
+                                    av_id=av_id, contents=str(message))
+        version.creator = user
         version.put()
         self.status('success')
 
@@ -624,7 +608,6 @@ class MainPage(webapp2.RequestHandler):
         redirect = self.request.get('redirect_url')
         user = users.get_current_user()
         if not redirect:
-            #redirect = self.request.url.split("/")[0] #doesn't work, returns http:
             redirect = "/"
             if self.request.get('project_name'):
                 redirect += self.request.get('project_name')
@@ -674,19 +657,18 @@ class MainPage(webapp2.RequestHandler):
             return self.get_page_links()
 
     def handle_commands(self, command, project_name):
-        ''' Handles any commands passed by http get. 
+        ''' Handles any commands passed by http get.
             Return True if you don't want the page to load afterwards.'''
         command = command.lower().replace("_", " ")
-
         # Login Commands
         if command in ['login', 'logout', 'smart login', 'get user']:
-            return self.handle_login(command);
+            return self.handle_login(command)
         # Temporary viewing commands.
         if command == 'temp view':
             return self.temp_get()
         if command == 'grab temp page':
             return self.get_temp_page()
-        
+
         # Project Selection Commands
         user = users.get_current_user()
         key = ndb.Key("Project", project_name)
@@ -820,7 +802,7 @@ class CSSPage(webapp2.RequestHandler):
             self.response.write("Malformed ID.")
         css = ndb.Key(CSS, css_id)
         self.response.write(css.get().contents)
-        
+
 
 application = webapp2.WSGIApplication([
     ('/end', MainPage),
