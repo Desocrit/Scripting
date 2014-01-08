@@ -342,6 +342,8 @@ function saveAnnotation(e)
 
 function pingForAnnotations()
 {
+    window.setTimeout(pingForAnnotations, 3000);
+
     if (!currentPage) return;
     
     jsonCall
@@ -391,15 +393,12 @@ function pingForAnnotations()
     );
 }
 
-function ping()
+function generalPing()
 {
+    listPages();
+    listProjects();
 
-    //try { saveAnnotations(); } catch (e){}
-    try { pingForAnnotations();  } catch (e){}
-    try { listPages();  } catch (e){}
-    try { listProjects();  } catch (e){} // Commented out - SERVER BROKEN
-
-    window.setTimeout(ping, 5000);
+    window.setTimeout(generalPing, 10000);
 }
 
 function listProjects(switchToFirst) {
@@ -483,7 +482,8 @@ function tempView(url)
 
 $(document).ready(function()
 {
-    ping();
+    generalPing();
+    pingForAnnotations();
 });
 
 
