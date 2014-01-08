@@ -222,24 +222,24 @@ function switchProject(project_name){
 
 function deleteProject(){
     var project_name = project;
-    var confirm_delete = confirm("Are you sure you want to delete project " + project_name + "?");
 
-    if(confirm_delete)
+    if(projects.length == 1)
     {
-        if(projects.length == 1)
+        alert("Sorry you can't delete your only project, make another one first!");
+    }
+    else
+    {
+        if(confirm("Are you sure you want to delete project " + project_name + "?"))
         {
-            alert("Sorry you can't delete your only project, make another one first!");
-        }
-        else
-        {
+           
             jsonCall("Delete+Project",null,displayCreatePage, displayServerError);
             var newProject;
             
             for (var i = 0; i < projects.length; i++)
             {
-                if (projects[i] != project_name)
+                if (projects[i].name != project_name)
                 {
-                    newProject = projects[i];
+                    newProject = projects[i].name;
                     break;
                 }
             }
@@ -396,7 +396,8 @@ function listProjects(switchToFirst) {
             for (var i = 0; i < response.admin_access.length; i++)
             {
                 var project = response.admin_access[i];
-                projects.push(project);
+                projects.push({ "name" : project, "level" : "admin" });
+
                 projects_list.innerHTML += '<li onclick="switchProject(\'' + project + '\')">' + project + '</li>';
             }
 
@@ -416,14 +417,14 @@ function listProjects(switchToFirst) {
             {
                 var project = normals[i];
 
-                projects.push(project);
+                projects.push({ "name" : project, "level" : "user" });
 
                 projects_list.innerHTML += '<li onclick="switchProject(\'' + project + '\')">' + project + '</li>';
             }
 
             if (switchToFirst)
             {
-                switchProject(projects[0]);
+                switchProject(projects[0].name);
             }
         }),
         displayServerError
