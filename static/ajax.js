@@ -239,7 +239,7 @@ function listPages()
 
 function saveAnnotations()
 {
-    for (var i = 0; i < annotations.length; i++)
+    for (var i in annotations)
     {
         jsonCall
         (
