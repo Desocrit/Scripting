@@ -167,6 +167,7 @@ function getPage(url)
 
         doc.head.appendChild(s);
 
+        pingForAnnotations();
         
     });
 
@@ -350,54 +351,12 @@ function writeUsername()
 }
 
 function tempView(url){
-    var frame = document.getElementById('page_holder');
-    
-    annotations = { };
-
-    frame.src = '?command=temp_view&url=' + encodeURIComponent(url); 
-
-    currentPage = url;
-    document.getElementById('search').value = url;
-
-    frame.onload = (function()
-    {
-        var doc = frame.contentWindow.document;
-        var s   = doc.createElement('script');
-        s.src = '/static/inject.js';
-
-        var jq  = doc.createElement('script');
-        jq.src = 'http://code.jquery.com/jquery-1.10.1.min.js';
-        jq.async = false;
-
-        var jui  = doc.createElement('script');
-        jui.src = 'http://code.jquery.com/ui/1.10.3/jquery-ui.js';
-        jui.async = false;
-
-        var c = doc.createElement('link');
-        c.rel="stylesheet" ;
-        c.href="/static/inject.css" ;
-        c.type="text/css";
-
-        var ui = doc.createElement('link');
-        ui.rel="stylesheet" ;
-        ui.href="http://code.jquery.com/ui/1.10.3/themes/smoothness/jquery-ui.css" ;
-        ui.type="text/css";
-
-        
-        doc.head.appendChild(ui);
-
-        doc.head.appendChild(c);
-        doc.head.appendChild(jq);
-        doc.head.appendChild(jui);
-
-        doc.head.appendChild(s);
-
-        
-    });
-
-    listPages();
-
-    return 
+    jsonCall
+    (
+        'temp view', 'url=' + url,
+        (function(){}),
+        function(){}
+    );    
 }
 
 $(document).ready(function()
