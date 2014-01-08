@@ -2,7 +2,7 @@ var currentPage;
 var lastPing;
 var project = 'default_project';
 var annotations = { };
-var callback;
+var callback = null;
 var userName;
 var lastResponse;
 var error = [ ];
@@ -43,10 +43,10 @@ function displayPageNotFound()
 {
 }
 
-function err(msg, command, raw)
+function err(msg, command, raw, e)
 {
     console.log(msg + '. Command: ' + command + '. See error[' + error.length + ']');
-    error.push(raw);   
+    error.push({"data" : raw, "exception" : e});
 }
 
 
@@ -68,25 +68,33 @@ function apiCall(command, vars, callback)
                 }
                 catch (e)
                 {
-                    err('Failed', command, lastResponse);
+                    err('Failed', command, lastResponse, e);
                 }
             }
             else
             {
-                displayServerError(xmlhttp);
+                err('Server Error', command, lastResponse, null);
             }
         }
     });
 
-    var req =
-          '/end?project_name='  + project
-        + '&'              + vars
-        + '&command='      + command
-        + '&output_type=json';
-    xmlhttp.timeout   = 6000;
-    xmlhttp.ontimeout = displayTimeoutError;
-    xmlhttp.open('GET', req, true);
-    xmlhttp.send();
+    try
+    {
+        var req =
+              '/end?project_name='  + project
+            + '&'              + vars
+            + '&command='      + command
+            + '&output_type=json';
+
+        xmlhttp.timeout   = 6000;
+        xmlhttp.ontimeout = displayTimeoutError;
+        xmlhttp.open('GET', req, true);
+        xmlhttp.send();
+    }
+    catch (e)
+    {
+        err('Server Error', command, lastResponse, null);
+    }
 }
 
 function jsonCall(command, vars, success, fail)
@@ -103,7 +111,7 @@ function jsonCall(command, vars, success, fail)
             }
             catch (e)
             {
-                err('Not JSON', command, lastResponse);
+                err('Not JSON', command, lastResponse, e);
             }
             
             if (lastResponse.status == 'success')
@@ -140,6 +148,7 @@ function getPage(url)
     var frame = document.getElementById('page_holder');
     
     annotations = { };
+    callback    = null;
 
     frame.src =
           '/end?command=View+Page'
@@ -152,8 +161,6 @@ function getPage(url)
     frame.onload = (function()
     {
         var doc = frame.contentWindow.document;
-        var s   = doc.createElement('script');
-        s.src = '/static/inject.js';
 
         var jq  = doc.createElement('script');
         jq.src = 'http://code.jquery.com/jquery-1.10.1.min.js';
@@ -162,6 +169,10 @@ function getPage(url)
         var jui  = doc.createElement('script');
         jui.src = 'http://code.jquery.com/ui/1.10.3/jquery-ui.js';
         jui.async = false;
+
+        var s     = doc.createElement('script');
+        s.src     = '/static/inject.js';
+        s.async = false;
 
         var c = doc.createElement('link');
         c.rel="stylesheet" ;
@@ -255,7 +266,7 @@ function saveAnnotations()
         jsonCall
         (
               'Annotate',
-              'message=' + annotations[i].contentEl.innerText
+              'message=' + annotations[i].contentEl.value
             + '&url=' + encodeURIComponent(currentPage)
             + '&element_id=' + annotations[i].subjectElement.id
             + '&uniqid=' + annotations[i].uniqid
@@ -267,6 +278,24 @@ function saveAnnotations()
     }
 }
 
+function saveAnnotation()
+{
+    var anot = this.wrapper;
+
+    jsonCall
+    (
+          'Annotate',
+          'message=' + anot.contentEl.value
+        + '&url=' + encodeURIComponent(currentPage)
+        + '&element_id=' + anot.subjectElement.id
+        + '&uniqid=' + anot.uniqid
+        + '&x_pos=' + parseInt(anot.style.left)
+        + '&y_pos=' + parseInt(anot.style.top),
+        (function() { }),
+        displayServerError
+    );
+}
+
 function pingForAnnotations()
 {
     jsonCall
@@ -275,27 +304,38 @@ function pingForAnnotations()
         'url=' + encodeURIComponent(currentPage),
         (function(response)
         {
-            for (var i = 0; i < response.annotations.length; i++)
+            var load = (function()
             {
-                if (typeof annotations[response.annotations[i].uniqid] == 'undefined')
+                if (!callback)
                 {
-                    callback
-                    (
-                        response.annotations[i].x_pos,
-                        response.annotations[i].y_pos,
-                        response.annotations[i].element_id,
-                        response.annotations[i].contents,
-                        response.annotations[i].uniqid
-                    );
+                    window.setTimeout(load, 200);
                 }
                 else
                 {
-                    var anot                 = annotations[response.annotations[i].uniqid];
-                    anot.contentEl.innerText = response.annotations[i].contents;
-                    anot.style.left          = response.annotations[i].x_pos + 'px';
-                    anot.style.top           = response.annotations[i].y_pos + 'px';
+                    for (var i = 0; i < response.annotations.length; i++)
+                    {
+                        if (typeof annotations[response.annotations[i].uniqid] == 'undefined')
+                        {   
+                            callback
+                            (
+                                response.annotations[i].x_pos,
+                                response.annotations[i].y_pos,
+                                response.annotations[i].element_id,
+                                response.annotations[i].contents,
+                                response.annotations[i].uniqid
+                            );
+                        }
+                        else
+                        {
+                            var anot             = annotations[response.annotations[i].uniqid];
+                            anot.contentEl.value = response.annotations[i].contents;
+                            anot.style.left      = response.annotations[i].x_pos + 'px';
+                            anot.style.top       = response.annotations[i].y_pos + 'px';
+                        }
+                    }
                 }
-            }
+            });
+            load();
         }),
         displayServerError
     );
@@ -304,10 +344,10 @@ function pingForAnnotations()
 function ping()
 {
 
-    try { saveAnnotations(); } catch (e){}
+    //try { saveAnnotations(); } catch (e){}
     try { pingForAnnotations();  } catch (e){}
     try { listPages();  } catch (e){}
-    try { listProjects();  } catch (e){}
+    //try { listProjects();  } catch (e){} // Commented out - SERVER BROKEN
 
     window.setTimeout(ping, 5000);
 }
@@ -378,3 +418,5 @@ $(document).ready(function()
 {
     ping();
 });
+
+

@@ -20,7 +20,7 @@
 
     var makeAnnotation = (function(x, y, el, text, uniqid)
     {
-         var annotationWrap = document.createElement('div');
+        var annotationWrap = document.createElement('div');
 
         annotationWrap.className = 'annotation_wrap';
       
@@ -30,11 +30,14 @@
         annotationWrap.subjectElement   = document.getElementById(el);
         annotationWrap.uniqid           = uniqid;
 
-        var annotationContent = document.createElement('div');
+        var annotationContent = document.createElement('textarea');
         annotationContent.className = 'annotation_text';
-        annotationContent.innerHTML        = text;
+        annotationContent.value            = text;
         annotationContent.contentEditable  = true;
-        annotationContent.isAnnotation     - true;
+        annotationContent.on
+        annotationContent.isAnnotation     = true;
+        annotationContent.onkeyup          = window.parent.saveAnnotation;
+        annotationContent.wrapper          = annotationWrap;
         annotationWrap.contentEl           = annotationContent;
 
 
@@ -69,20 +72,23 @@
         makeAnnotation(e.layerX, e.layerY, currentElement, "Type here...", generateUid());
     });
 
-    menu = document.createElement('div');
-    menu.style.display  = 'none';
-    menu.style.width    = '300px';
-    menu.style.position = 'absolute';
+    $(document).ready(function()
+    {
+        menu = document.createElement('div');
+        menu.style.display  = 'none';
+        menu.style.width    = '300px';
+        menu.style.position = 'absolute';
 
-        var a       = document.createElement('a');
-        a.onclick   = addAnnotation;
-        a.innerText = 'Add Annotation';
-        a.className = 'context_menu';
-        menu.appendChild(a);
+            var a       = document.createElement('a');
+            a.onclick   = addAnnotation;
+            a.innerText = 'Add Annotation';
+            a.className = 'context_menu';
+            menu.appendChild(a);
 
-    document.body.appendChild(menu);
+        document.body.appendChild(menu);
 
-    window.parent.setCallback(makeAnnotation);
+        window.parent.setCallback(makeAnnotation);
+    });
 })();
 
 var generateUid = function (separator)
