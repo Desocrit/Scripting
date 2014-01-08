@@ -28,7 +28,7 @@
         annotationWrap.style.top        = y + 'px';
         annotationWrap.isAnnotation     = true;
         annotationWrap.subjectElement   = document.getElementById(el);
-        annotationWrap.uniqid           = generateUid();
+        annotationWrap.uniqid           = generateUid('');
 
         var annotationContent = document.createElement('div');
         annotationContent.className = 'annotation_text';
@@ -77,7 +77,7 @@
 
 var generateUid = function (separator)
 {
-    var delim = separator || "-";
+    var delim = '';//separator || "-";
 
     function S4()
     {

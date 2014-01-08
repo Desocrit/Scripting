@@ -324,5 +324,5 @@ function writeUsername()
 
 $(document).ready(function()
 {
-    //ping();
+    ping();
 });
