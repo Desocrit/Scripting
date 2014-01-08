@@ -1,7 +1,7 @@
 var currentPage;
 var lastPing;
 var project = 'default_project';
-var annotations = [];
+var annotations = { };
 var callback;
 
 /**
@@ -270,7 +270,7 @@ function pingForAnnotations()
                     response.annotations[i].x_pos,
                     response.annotations[i].y_pos,
                     response.annotations[i].element_id,
-                    response.annotations[i].message
+                    response.annotations[i].contents
                 )
             }
         }),

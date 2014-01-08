@@ -30,13 +30,14 @@
 
         var annotationContent = document.createElement('div');
         annotationContent.className = 'annotation_text';
-        annotationContent.innerHTML        = "Type here...";
+        annotationContent.innerHTML        = text;
         annotationContent.contentEditable  = true;
 
         menu.style.display = 'none';
         document.body.appendChild(annotationWrap);
         annotationWrap.appendChild(annotationContent);
-        window.parent.annotations.push(annotationWrap);
+
+        window.parent.annotations[el] = annotationWrap;
         
         $(".annotation_wrap").draggable()
           .click(function() {
@@ -51,7 +52,7 @@
 
     var addAnnotation = (function()
     {
-        makeAnnotation(e.layerX, e.layerY, currentElement, '');
+        makeAnnotation(e.layerX, e.layerY, currentElement, "Type here...");
     });
 
     menu = document.createElement('div');
