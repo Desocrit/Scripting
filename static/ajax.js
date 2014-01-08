@@ -309,6 +309,8 @@ function saveAnnotation()
 
 function pingForAnnotations()
 {
+    if (!currentPage) return;
+    
     jsonCall
     (
         'get_annotations',
@@ -380,17 +382,27 @@ function listProjects() {
                 projects.push(project);
                 projects_list.innerHTML += '<li onclick="switchProject(\'' + project + '\')">' + project + '</li>';
             }
-            
-            if (response.normal_access.length > 0)   projects_list.innerHTML += '<li><b>Member Access</b></li>';
+
+            var normals = [ ];
             for (var i = 0; i < response.normal_access.length; i++)
             {
                 var project = response.normal_access[i];
+
+                if (response.admin_access.indexOf(project) == -1)
+                {
+                    normals.push(project);
+                }
+            }
+            
+            if (normals.length > 0)   projects_list.innerHTML += '<li><b>Member Access</b></li>';
+            for (var i = 0; i < normals; i++)
+            {
+                var project = normals[i];
+
                 projects.push(project);
 
                 projects_list.innerHTML += '<li onclick="switchProject(\'' + project + '\')">' + project + '</li>';
             }
-
-
         }),
         displayServerError
     );
