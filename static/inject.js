@@ -37,17 +37,27 @@
         annotationContent.isAnnotation     - true;
         annotationWrap.contentEl           = annotationContent;
 
+
+        var closeDiv = document.createElement('div');
+        closeDiv.className = 'close';
+        closeDiv.uniqid = annotationWrap.uniqid;
+        var closeX = document.createElement('span');
+        closeX.className = 'closeX';
+        closeX.innerHTML = 'x';
+
         menu.style.display = 'none';
         document.body.appendChild(annotationWrap);
         annotationWrap.appendChild(annotationContent);
+        annotationWrap.appendChild(closeDiv);
+        closeDiv.appendChild(closeX);
 
         window.parent.annotations[annotationWrap.uniqid] = annotationWrap;
         
         $(".annotation_wrap").draggable()
           .click(function() {
-            $(this).draggable( {disabled: false});
+            $(this).draggable( {disabled: true});
         }).dblclick(function() {
-            $(this).draggable({ disabled: true });
+            $(this).draggable({ disabled: false });
         }).resizable();
         $(".annotation_wrap").on("mouseout", function() {
             $(this).draggable( {disabled: false});

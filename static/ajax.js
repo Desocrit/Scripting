@@ -3,7 +3,7 @@ var lastPing;
 var project = 'default_project';
 var annotations = { };
 var callback;
-
+var userName;
 /**
  * Should display the main interface (called after successful login)
  */
@@ -298,6 +298,29 @@ function ping()
     listPages();
 
     window.setTimeout(ping, 5000);
+}
+
+function listProjects() {
+
+    var projects = document.getElementById('project_list');
+
+    jsonCall
+    (
+        'projects', '',
+        (function(response)
+        {
+            projects.innerHTML = '';
+            for (var i = 0; i < response.normal_access.length; i++)
+            {
+                var project = response.normal_access[i];
+
+                links.innerHTML += '<li onclick="switchProject(\'' + project + '\')">' + project + '</li>';
+            }
+
+
+        }),
+        displayServerError
+    );
 }
 
 
