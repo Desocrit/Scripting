@@ -119,6 +119,14 @@ function login()
     jsonCall('login', vars, displayMain, displayLoginError);
 }
 
+function logout() {
+
+    jsonCall(
+        "logout", '', function() {
+
+        }, displayServerError);
+}
+
 function getPage(url)
 {
     var frame = document.getElementById('page_holder');
@@ -299,7 +307,6 @@ function writeUsername()
         (function(response)
         {
             nameText.innerHTML = response.username;
-        }
         }),
         function(){}
     );

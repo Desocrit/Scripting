@@ -19,28 +19,32 @@
 
     var makeAnnotation = (function(x, y, el, text)
     {
-        var annotation = document.createElement('div');
+         var annotationWrap = document.createElement('div');
 
-        annotation.className = 'annotation_text';
+        annotationWrap.className = 'annotation_wrap';
       
-        annotation.style.left       = x + 'px';
-        annotation.style.top        = y + 'px';
-    
-        annotation.innerText        = text;
-        annotation.contentEditable  = true;
-        annotation.subjectElement   = document.getElementById(el);
-        annotation.isAnnotation     = true;
+        annotationWrap.style.left       = x + 'px';
+        annotationWrap.style.top        = y + 'px';
+        annotationWrap.isAnnotation     = true;
+        annotationWrap.subjectElement   = document.getElementById(el);
+
+        var annotationContent = document.createElement('div');
+        annotationContent.className = 'annotation_text';
+        annotationContent.innerHTML        = "Type here...";
+        annotationContent.contentEditable  = true;
 
         menu.style.display = 'none';
-        document.body.appendChild(annotation);
-        window.parent.annotations.push(annotation);
-        $(".annotation_text").draggable()
+        document.body.appendChild(annotationWrap);
+        annotationWrap.appendChild(annotationContent);
+        window.parent.annotations.push(annotationWrap);
+        
+        $(".annotation_wrap").draggable()
           .click(function() {
             $(this).draggable( {disabled: false});
         }).dblclick(function() {
             $(this).draggable({ disabled: true });
         }).resizable();
-        $(".annotation_text").on("mouseout", function() {
+        $(".annotation_wrap").on("mouseout", function() {
             $(this).draggable( {disabled: false});
         })
     });

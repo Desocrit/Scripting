@@ -1,4 +1,4 @@
-.annotation_text, .context_menu {
+.annotation_wrap, .context_menu {
 		display: block;
         position: absolute;
         color: rgba(255,255,255,0.9);
@@ -21,7 +21,7 @@
 	    z-index: 15;
     }
 
-.annotation_text:hover {
+.annotation_wrap:hover {
 	color: rgba(255, 255, 200, 0.9);
 }
 
@@ -34,6 +34,10 @@
 	height: 5px;
 }
 
-.annotation_text {
+
+.annotation_wrap {
 	width: 300px;
+}
+
+.annotation_text {
 }
