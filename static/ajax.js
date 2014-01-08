@@ -345,12 +345,6 @@ function writeUsername()
     );
 }
 
-$(document).ready(function()
-{
-<<<<<<< HEAD
-    //ping();
-});
-
 function tempView(url){
     jsonCall
     (
@@ -359,7 +353,8 @@ function tempView(url){
         function(){}
     );    
 }
-=======
+
+$(document).ready(function()
+{
     ping();
 });
->>>>>>> 5ecac3764a74305a3f5378da9174c94d9f450e05
