@@ -41,12 +41,12 @@ $( document ).ready(function() {
 
 	});
 
-	//$("#login_button").click(function(event) {
-	//	$("#front_page").animate({opacity: 0.0}).css({top: "-120%"}, 500);
-	//	$("#container").css({opacity: 0.0, visibility: "visible"}).animate({opacity: 1.0}, 500);
-	//	$("header").animate({top: '0'}, 500);
-	//	$("footer").animate({bottom: '0'}, 500);
-	//});
+	$("#login_button").click(function(event) {
+		$("#front_page").animate({opacity: 0.0}).css({top: "-120%"}, 500);
+		$("#container").css({opacity: 0.0, visibility: "visible"}).animate({opacity: 1.0}, 500);
+		$("header").animate({top: '0'}, 500);
+		$("footer").animate({bottom: '0'}, 500);
+	});
 
 	$(".menu li").on('mouseenter', function() {
 		$(this).children('ul').fadeIn();

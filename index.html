@@ -37,7 +37,7 @@
 	<div id="front_page">
 		<div id="login_box"><h2 class="title">welcome to <span class="emphasise">Collaborowse</span></h2>
 			<p id="please_login">Please login to get started!</p>
-		<a href="?command=smart_login&redirect_url=index.html"><div id="login_button">Login</div></a>
+		<a id="login_link" href="" ><div id="login_button">Login</div></a>
 		</div>
 	</div>
 	<header>
@@ -65,7 +65,7 @@
 			<div id="userMenu">
 				<h2 id="user_name" class="inline">user name <span class="emphasise" id="usn"> USER</span></h2>
 				<ul class="menu">
-					<li id="logout_button" onclick="logout()">Logout</li>
+					<a href="" id="logout_link"><li id="logout_button">Logout</li></a>
 				</ul>
 			</div>
 			<input type="text" id="search" onkeydown="if (event.keyCode == 13) tempView(document.getElementById('search').value);"></input>
@@ -96,20 +96,15 @@
 		</div>
 	</footer>
 	<script text="text/javascript">
-		function isLoggedIn()
-		{
-			//return jsonCall('get user', null, function(){return true;}, function(){return false;});
-			return true;
-		}
-		if(isLoggedIn())
-		{
-			$("#front_page").animate({opacity: 0.0}).css({top: "-120%"}, 500);
-			$("#container").css({opacity: 0.0, visibility: "visible"}).animate({opacity: 1.0}, 500);
-			$("header").animate({top: '0'}, 500);
-			$("footer").animate({bottom: '0'}, 500);
-			listPages();
-			writeUsername();
-		}	
+		jsonCall('get user', null, displayServerError, function(response){ 
+		 	if  (response.status == 'true') {
+		 		login();
+		 		logout_url();
+		 		get_username();
+		 	} else {
+		 		login_url();
+		 	}
+		});
 	</script>
 </body>
 </html>

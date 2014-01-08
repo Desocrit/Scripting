@@ -1,6 +1,6 @@
 var currentPage;
 var lastPing;
-var project = 'default_project';
+var project = null;
 var annotations = { };
 var callback = null;
 var userName;
@@ -11,41 +11,41 @@ var projects = [ ];
 /**
  * Should display the main interface (called after successful login)
  */
-function displayMain(user) {}
+ function displayMain(user) {}
 
 /**
  * Should display an error on the login form
  */
-function displayLoginError() {}
+ function displayLoginError() {}
 
 /**
  * This is called when the server responds with nonsense
  */
-function displayServerError(xmlhttp)
-{
-}
+ function displayServerError(xmlhttp)
+ {
+ }
 
-function displayAddPage()
-{
-}
+ function displayAddPage()
+ {
+ }
 
-function displayCreatePage()
-{
-}
+ function displayCreatePage()
+ {
+ }
 
 /**
  * This is called with the server times out
  */
-function displayTimeoutError()
-{
-}
+ function displayTimeoutError()
+ {
+ }
 
-function displayPageNotFound()
-{
-}
+ function displayPageNotFound()
+ {
+ }
 
-function err(msg, command, raw, e)
-{
+ function err(msg, command, raw, e)
+ {
     console.log(msg + '. Command: ' + command + '. See error[' + error.length + ']');
     error.push({"data" : raw, "exception" : e});
 }
@@ -54,95 +54,103 @@ function err(msg, command, raw, e)
 function apiCall(command, vars, callback)
 {
     var xmlhttp = window.XMLHttpRequest
-        ? new XMLHttpRequest()
+    ? new XMLHttpRequest()
         : new ActiveXObject("Microsoft.XMLHTTP"); // IE <= 6
-    
-    xmlhttp.onreadystatechange = (function()
-    {
-        if (xmlhttp.readyState == 4)
-        {
-            if (xmlhttp.status == 200)
-            {
-                try
-                {
-                    callback(xmlhttp.responseText);
-                }
-                catch (e)
-                {
-                    err('Failed', command, lastResponse, e);
-                }
-            }
-            else
-            {
-                err('Server Error', command, lastResponse, null);
-            }
-        }
-    });
 
-    try
-    {
-        var req =
-              '/end?project_name='  + project
+        xmlhttp.onreadystatechange = (function()
+        {
+            if (xmlhttp.readyState == 4)
+            {
+                if (xmlhttp.status == 200)
+                {
+                    try
+                    {
+                        callback(xmlhttp.responseText);
+                    }
+                    catch (e)
+                    {
+                        err('Failed', command, lastResponse, e);
+                    }
+                }
+                else
+                {
+                    err('Server Error', command, lastResponse, null);
+                }
+            }
+        });
+
+        try
+        {
+            var req =
+            '/end?project_name='  + project
             + '&'              + vars
             + '&command='      + command
             + '&output_type=json';
 
-        xmlhttp.timeout   = 6000;
-        xmlhttp.ontimeout = displayTimeoutError;
-        xmlhttp.open('GET', req, true);
-        xmlhttp.send();
-    }
-    catch (e)
-    {
-        err('Server Error', command, lastResponse, null);
-    }
-}
-
-function jsonCall(command, vars, success, fail)
-{
-    apiCall
-    (
-        command,
-        vars,
-        (function(text)
+            xmlhttp.timeout   = 6000;
+            xmlhttp.ontimeout = displayTimeoutError;
+            xmlhttp.open('GET', req, true);
+            xmlhttp.send();
+        }
+        catch (e)
         {
-            try
+            err('Server Error', command, lastResponse, null);
+        }
+    }
+
+
+    function jsonCall(command, vars, success, fail)
+    {
+        apiCall
+        (
+            command,
+            vars,
+            (function(text)
             {
-                lastResponse = JSON.parse(text);
-            }
-            catch (e)
-            {
-                err('Not JSON', command, lastResponse, e);
-            }
-            
-            if (lastResponse.status == 'success')
-            {
-                success(lastResponse);
-            }
-            else
-            {
-                fail(lastResponse);
-            }
-        })
-    );
+                try
+                {
+                    lastResponse = JSON.parse(text);
+                }
+                catch (e)
+                {
+                    err('Not JSON', command, lastResponse, e);
+                }
+
+                if (lastResponse.status == 'success')
+                {
+                    success(lastResponse);
+                }
+                else
+                {
+                    fail(lastResponse);
+                }
+            })
+            );
+    }
+
+    function login_url() {
+        jsonCall(
+            "login", "", function(response) {
+                document.getElementById("login_link").href = response.login_url;
+            }, displayServerError)
+    }
+
+    function login()
+    {
+        $("#front_page").animate({opacity: 0.0}).css({top: "-120%"}, 500);
+        $("#container").css({opacity: 0.0, visibility: "visible"}).animate({opacity: 1.0}, 500);
+        $("header").animate({top: '0'}, 500);
+        $("footer").animate({bottom: '0'}, 500);
+    }
+
+    function logout_url() {
+      var logoutLinkUpdater = function(response) {
+        document.getElementById("logout_link").href = response.logout_url;
+    };
+    jsonCall("logout", "", logoutLinkUpdater, logoutLinkUpdater);
 }
 
-function login()
-{
-    var vars =
-           'username=' + document.getElementById('username').value
-        + '&password=' + document.getElementById('password').value;
 
-    jsonCall('login', vars, displayMain, displayLoginError);
-}
-
-function logout() {
-
-    jsonCall(
-        "logout", '', function() {
-
-        }, displayServerError);
-}
 
 function getPage(url)
 {
@@ -152,9 +160,9 @@ function getPage(url)
     callback    = null;
 
     frame.src =
-          '/end?command=View+Page'
-        + '&url=' + encodeURIComponent(url)
-        + '&project_name=' + project;
+    '/end?command=View+Page'
+    + '&url=' + encodeURIComponent(url)
+    + '&project_name=' + project;
 
     currentPage = url;
     document.getElementById('search').value = url;
@@ -198,7 +206,7 @@ function getPage(url)
         
     });
 
-    listPages();
+listPages();
 }
 
 function createProject(){
@@ -225,12 +233,12 @@ function deleteProject(){
     if(confirm_delete) {
         switchProject(project_name);
         if(projects.length = 1) {
-            alert("Sorry you can't delete your last project, make another one first!");
+            alert(projects.length + "Sorry you can't delete your only project, make another one first!");
         } else {
-        jsonCall("Delete+Project",null,displayCreatePage, displayServerError);
-        listProjects();
-        switchProject(projects[0]);
-        alert("Project " + project_name + " deleted. Switched to " + project);
+            jsonCall("Delete+Project",null,displayCreatePage, displayServerError);
+            listProjects();
+            switchProject(projects[0]);
+            alert("Project " + project_name + " deleted. Switched to " + project);
         }
     }
 }
@@ -245,7 +253,7 @@ function buttonAddPage()
         "url="+ encodeURIComponent(url),
         (function(){getPage(url);}),
         displayPageNotFound
-    );
+        );
 
 }
 
@@ -267,7 +275,7 @@ function listPages()
             }
         }),
         displayServerError
-    );
+        );
 }
 
 function saveAnnotations()
@@ -276,16 +284,16 @@ function saveAnnotations()
     {
         jsonCall
         (
-              'Annotate',
-              'message=' + annotations[i].contentEl.value
-            + '&url=' + encodeURIComponent(currentPage)
-            + '&element_id=' + annotations[i].subjectElement.id
-            + '&uniqid=' + annotations[i].uniqid
-            + '&x_pos=' + parseInt(annotations[i].style.left)
-            + '&y_pos=' + parseInt(annotations[i].style.top),
-            (function() { }),
-            displayServerError
-        );
+          'Annotate',
+          'message=' + annotations[i].contentEl.value
+          + '&url=' + encodeURIComponent(currentPage)
+          + '&element_id=' + annotations[i].subjectElement.id
+          + '&uniqid=' + annotations[i].uniqid
+          + '&x_pos=' + parseInt(annotations[i].style.left)
+          + '&y_pos=' + parseInt(annotations[i].style.top),
+          (function() { }),
+          displayServerError
+          );
     }
 }
 
@@ -295,16 +303,16 @@ function saveAnnotation()
 
     jsonCall
     (
-          'Annotate',
-          'message=' + anot.contentEl.value
-        + '&url=' + encodeURIComponent(currentPage)
-        + '&element_id=' + anot.subjectElement.id
-        + '&uniqid=' + anot.uniqid
-        + '&x_pos=' + parseInt(anot.style.left)
-        + '&y_pos=' + parseInt(anot.style.top),
-        (function() { }),
-        displayServerError
-    );
+      'Annotate',
+      'message=' + anot.contentEl.value
+      + '&url=' + encodeURIComponent(currentPage)
+      + '&element_id=' + anot.subjectElement.id
+      + '&uniqid=' + anot.uniqid
+      + '&x_pos=' + parseInt(anot.style.left)
+      + '&y_pos=' + parseInt(anot.style.top),
+      (function() { }),
+      displayServerError
+      );
 }
 
 function pingForAnnotations()
@@ -334,7 +342,7 @@ function pingForAnnotations()
                                 response.annotations[i].element_id,
                                 response.annotations[i].contents,
                                 response.annotations[i].uniqid
-                            );
+                                );
                         }
                         else
                         {
@@ -346,10 +354,10 @@ function pingForAnnotations()
                     }
                 }
             });
-            load();
-        }),
-        displayServerError
-    );
+load();
+}),
+displayServerError
+);
 }
 
 function ping()
@@ -393,7 +401,7 @@ function listProjects() {
 
         }),
         displayServerError
-    );
+        );
 }
 
 
@@ -415,7 +423,7 @@ function writeUsername()
             nameText.innerHTML = response.username;
         }),
         function(){}
-    );
+        );
 }
 
 function tempView(url){
@@ -424,7 +432,7 @@ function tempView(url){
         'temp view', 'url=' + url,
         (function(){}),
         function(){}
-    );    
+        );    
 }
 
 $(document).ready(function()

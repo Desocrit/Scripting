@@ -619,28 +619,23 @@ class MainPage(webapp2.RequestHandler):
             redirect = "/"
             if self.request.get('project_name'):
                 redirect += self.request.get('project_name')
-        if () == 'logout':
+        if command == 'logout':
             if user:
-                self.redirect(users.create_logout_url(redirect))
-        elif command == 'login':
-            login_url = users.create_login_url(redirect)
-            if user:
-                self.redirect(users.create_logout_url(login_url))
+                self.json['logout_url'] = users.create_logout_url('/');
+                self.status('success');
             else:
-                self.redirect(login_url)
+                self.status('fail');
+        elif command == 'login':
+            self.json['login_url'] = users.create_login_url('/')
+            self.status('success');
         elif command == 'get user':
             if user:
                 self.json['username'] = user.email()
-                self.status('success')
+                self.status('true')
             else:
-                self.status('Not logged in.')
+                self.status('false')
             return True
-        elif command == 'smart login':
-            if user:
-                self.redirect(users.create_logout_url(redirect))
-            else:
-                login_url = users.create_login_url(redirect)
-                self.redirect(login_url)
+
 
     def handle_page_commands(self, command, project, user):
         ''' Handles commands related to pages. '''
