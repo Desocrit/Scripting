@@ -11,18 +11,27 @@ command=logout&redirect_url=whatever
 Logs out if logged in
 Same redirect as above.
 
+command=smart_login&redirect_url=whatever
+Logs out if logged in. Logs in if logged out. See above for redirect.
+
+command=get_user
+Returns json with {"username": "usn", "status": "success"} if logged in.
+or {"status": "Not logged in"}, if not.
+
 command=temp view&url=something
 Gets the url requested for temporary viewing only.
 
 command=grab temp page
 Gets the most recently 'temp view'ed page, and adds to the project.
 
-command=smart_login&redirect_url=whatever
-Logs out if logged in. Logs in if logged out. See above for redirect.
+command=list projects
+Lists projects the current user has admin or member access to.
 
-command=get_user
-Returns json with {"username": "usn", "status": "success"} if user exists
-or {"status": "Not logged in"}, if not.
+command=delete all&project_name=x
+Deletes all current pages in the project. Requires admin
+
+command=list users&project_name=x
+Lists all users in the current project level, split by access level.
 
 project_name=x
 View the api for a given project.
