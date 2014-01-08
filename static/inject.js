@@ -18,7 +18,7 @@
         return false;
     });
 
-    var makeAnnotation = (function(x, y, el, text)
+    var makeAnnotation = (function(x, y, el, text, uniqid)
     {
          var annotationWrap = document.createElement('div');
 
@@ -28,7 +28,7 @@
         annotationWrap.style.top        = y + 'px';
         annotationWrap.isAnnotation     = true;
         annotationWrap.subjectElement   = document.getElementById(el);
-        annotationWrap.uniqid           = generateUid('');
+        annotationWrap.uniqid           = uniqid;
 
         var annotationContent = document.createElement('div');
         annotationContent.className = 'annotation_text';
@@ -66,7 +66,7 @@
 
     var addAnnotation = (function()
     {
-        makeAnnotation(e.layerX, e.layerY, currentElement, "Type here...");
+        makeAnnotation(e.layerX, e.layerY, currentElement, "Type here...", generateUid());
     });
 
     menu = document.createElement('div');

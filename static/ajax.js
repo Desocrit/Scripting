@@ -246,7 +246,7 @@ function saveAnnotations()
         jsonCall
         (
               'Annotate',
-              'message=' + annotations[i].innerText
+              'message=' + annotations[i].contentEl.innerText
             + '&url=' + encodeURIComponent(currentPage)
             + '&element_id=' + annotations[i].subjectElement.id
             + '&uniqid=' + annotations[i].uniqid
@@ -275,7 +275,8 @@ function pingForAnnotations()
                         response.annotations[i].x_pos,
                         response.annotations[i].y_pos,
                         response.annotations[i].element_id,
-                        response.annotations[i].contents
+                        response.annotations[i].contents,
+                        response.annotations[i].uniqid
                     );
                 }
                 else
