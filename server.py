@@ -276,7 +276,7 @@ class MainPage(webapp2.RequestHandler):
             try:
                 href = re.match("https?://[^/]*/", url).group() + href[1:]
             except:
-                return href
+                return url + href
         elif not re.match("https?://", href):
             href = url + href
         return href
@@ -428,8 +428,7 @@ class MainPage(webapp2.RequestHandler):
             return self.status('success')
 
     def link_href(self, url, ext):
-        result = re.match("https?://[^/]*/", self.request.url).group()
-        result += 'end?command=temp_view&url='
+        result = '/end?command=temp_view&url='
         return result + cgi.escape(self.complete_href(url, ext))
 
     def replace_links(self, url, html):
@@ -451,11 +450,10 @@ class MainPage(webapp2.RequestHandler):
         is_stylesheet = lambda x: re.search("rel.*=.*stylesheet", x)
         css_urls = [self.get_href(h) for h in hrefs if is_stylesheet(h)]
         css_ids = [self.add_css(self.complete_href(url, c)) for c in css_urls]
-        current_url = re.match("https?://[^/]*/", self.request.url).group()
         for (css_url, css_id) in zip(css_urls, css_ids):
             if css_id:
                 html = sub(re.escape(css_url),
-                           current_url + "css?id=" + str(css_id), html)
+                           "/css?id=" + str(css_id), html)
         return (html, css_ids)
 
     def addElementIds(self, html):
