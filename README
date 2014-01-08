@@ -3,6 +3,22 @@ Later forks will simply return success or failure mesages.
 
 To use, simply 'get' with any of the following options:
 
+command=login&redirect_url=whatever
+Logs in. Logs out if already logged in, then tries to login.
+Redirects to redirect_url if provided, otherwise the current
+project's main page.
+
+command=logout&redirect_url=whatever
+Logs out if logged in
+Same redirect as above.
+
+command=smart_login&redirect_url=whatever
+Logs out if logged in. Logs in if logged out. See above for redirect.
+
+command=get_user
+Returns json with {"username": "usn", "status": "success"} if user exists
+or {"status": "Not logged in"}, if not.
+
 project_name=x
 View the api for a given project.
 
@@ -64,11 +80,13 @@ project_name=x&url=y&command=Annotate&Message=z&x_pos=m&y_pos=n
 Creates an annotation on the given page. Message, x position,
 and y position are all saved, for access via Page Details.
 
-project_name=x&url=x*command=Get Annotations&output_type=json
+project_name=x&url=x&command=Get Annotations&output_type=json
 Gets a list of annotations only.
 
-project_name=x&url=x*command=Get page links
+project_name=x&url=x&command=Get page links
 Gets a list of page links only.
+
+
 
 Optionally:
 
