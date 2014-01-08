@@ -439,7 +439,7 @@ class MainPage(webapp2.RequestHandler):
         if self.output_type == 'json':
             project_name = self.request.get('project_name')
             pages_query = Page.query(
-            ancestor=ndb.Key("Project", project_name)).order(-Page.created)
+                ancestor=ndb.Key("Project", project_name)).order(-Page.created)
             pages = pages_query.fetch()
             self.json['pages'] = [page.url for page in pages]
             return self.status('success')
