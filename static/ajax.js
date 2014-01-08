@@ -388,8 +388,6 @@ function listProjects() {
                 projects_list.innerHTML += '<li onclick="switchProject(\'' + project + '\')">' + project + '</li>';
             }
 
-            w
-
 
         }),
         displayServerError
