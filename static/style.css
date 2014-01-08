@@ -108,14 +108,14 @@ header
 	display: inline;
 	position: absolute;
 	left: 1%;
-	top: -5px;
+	top: 0px;
 }
 
 #userMenu {
 	display: inline;
 	position: absolute;
 	right: 1%;
-	top: -5px;
+	top: 0px;
 }
 
 footer 
@@ -308,7 +308,6 @@ border-bottom-left-radius: 15px;
 {
 	background-image: moz-linear-gradient(bottom, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 0) 40%, rgba(255, 255, 255, 0) 60%, rgba(255, 255, 255, 1) 100%), moz-linear-gradient(to right, rgb(255, 255, 255) 0%, rgba(212, 212, 212, 0) 100%) , url("images/hexellence.png");
 	background-image: -webkit-linear-gradient(bottom, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 0) 40%, rgba(255, 255, 255, 0) 60%, rgba(255, 255, 255, 1) 100%), linear-gradient(to right, rgb(255, 255, 255) 0%, rgba(212, 212, 212, 0) 100%) , url("images/hexellence.png");
-
 	background-image: linear-gradient(to bottom, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 0) 40%, rgba(255, 255, 255, 0) 60%, rgba(255, 255, 255, 1) 100%), linear-gradient(to right, rgb(255, 255, 255) 0%, rgba(212, 212, 212, 0) 100%) , url("images/hexellence.png");
 	-moz-box-sizing:    border-box;
    	-webkit-box-sizing: border-box;
@@ -325,7 +324,6 @@ border-bottom-left-radius: 15px;
 	font-weight: bold;
 	text-transform: capitalize;
 	padding: 0.1em 0em;
-	
 	color: #00222F;
 	border-top: 1px solid #bcbcbc;
 	width: 85%;
@@ -342,9 +340,8 @@ border-bottom-left-radius: 15px;
 	cursor: pointer;
 	padding: 3px 8px;
 	list-style: none;
-			border-bottom: 1px solid rgba(0,0,0,0);
-			word-wrap:break-word;
-
+	border-bottom: 1px solid rgba(0,0,0,0);
+	word-wrap:break-word;
 }
 
 #sidebar li:hover {
@@ -401,7 +398,7 @@ border-bottom-left-radius: 15px;
 	-webkit-box-shadow:inset 0px 0px 10px 3px rgba(0,0,0,0.4);
 	box-shadow:inset 0px 0px 10px 3px rgba(0,0,0,0.4);
 	background-color: rgba(0,0,0,0.1);
-	-webkit-border-radius: 10px;
+	 -webkit-border-radius: 10px;
     -moz-border-radius: 10px;
     border-radius: 10px;
 }

@@ -2,14 +2,11 @@
 <html>
 <head>
 	<script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
-
-	<script type="text/javascript" src="http://code.jquery.com/ui/1.10.3/jquery-ui.js"></script>
 	<title>COMP3001 Scripting Languages Group Project - Team F</title>
 	<link rel="stylesheet" href="static/style.css" type="text/css">
 	<script type="text/javascript" src="static/libaries/raphael.min.js"></script>
 	<script type="text/javascript" src="static/libaries/json2.min.js"></script>
 	<script type="text/javascript" src="static/libaries/raphael.sketchpad.js"></script>
-
 	<script src="static/ajax.js"></script>
 	<script src="static/ui.js"></script>
 	<script type="text/javascript">
@@ -27,13 +24,19 @@
 			document.getElementById("navbutton").innerHTML = "show navbar";
 		}
 	} 
+
+	function loggedOn() {
+			listPages();
+	}
+
+
 	</script>
 </head>	
 <body>
 	<div id="front_page">
 		<div id="login_box"><h2 class="title">welcome to <span class="emphasise">Collaborowse</span></h2>
 			<p id="please_login">Please login to get started!</p>
-		<a href="/end?command=login"><div id="login_button">Login</div></a>
+		<div id="login_button" onclick="loggedOn()">Login</div>
 		</div>
 	</div>
 	<header>
@@ -42,26 +45,26 @@
 				<h2 id="main_title" class="inline">powered by <span class="emphasise">Collaborowse</span></h2>
 				<!-- Project- and system-specific menu items -->
 				<ul id="menu" class="menu">
-					<li>Switch Project
+					<li onclick="switchProject();">Switch Project
 					<!-- nested menu (one level) demo below -->
 						<ul>
-							<li onclick="switchProject('testing')">testing</li>
-							<li onclick="switchProject('default_project')">default_project</li>
+							<li>project 1</li>
+							<li>project 2</li>
 						</ul>
 					</li>
 
 					<li onclick="createProject();">Create Project
 					</li>
-					<li onclick="deleteProject();">Delete Project
+					<li onclick-"deleteProject();">Delete Project
 					</li>
 					<li id="navbutton" class="menuitem">Hide Sidebar
 					</li>
 				</ul>
 			</div>
 			<div id="userMenu">
-				<h2 id="user_name" class="inline">user name <span class="emphasise" id="usn"> USER</span></h2>
+				<h2 id="user_name" class="inline">user name <span class="emphasise"> Alex</span></h2>
 				<ul class="menu">
-					<a href="/end?command=logout"><li id="logout_button">Logout</li></a>
+					<li id="logout_button">Logout</li>
 				</ul>
 			</div>
 			<input type="text" id="search" onkeydown="if (event.keyCode == 13) getPage(document.getElementById('search').value);"></input>
@@ -76,7 +79,7 @@
 		</ul>
 		
 	</div>
-		<iframe id="page_holder" seamless src="index.html"></iframe>
+		<iframe id="page_holder" seamless src="/end?url=http%3A%2F%2Fwww.google.co.uk&project_name=default_project&command=View+Page"></iframe>
 
 		<span id="backbutton" onclick="window.frames.history.back(-1);">BACK</span>
 		<div id="toolbar"></div>	
@@ -92,21 +95,5 @@
 			</ul>
 		</div>
 	</footer>
-	<script text="text/javascript">
-		function isLoggedIn()
-		{
-			//return jsonCall('get user', null, function(){return true;}, function(){return false;});
-			return true;
-		}
-		if(isLoggedIn())
-		{
-			$("#front_page").animate({opacity: 0.0}).css({top: "-120%"}, 500);
-			$("#container").css({opacity: 0.0, visibility: "visible"}).animate({opacity: 1.0}, 500);
-			$("header").animate({top: '0'}, 500);
-			$("footer").animate({bottom: '0'}, 500);
-			listPages();
-			writeUsername();
-		}	
-	</script>
 </body>
 </html>

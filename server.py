@@ -205,7 +205,7 @@ class MainPage(webapp2.RequestHandler):
             self.response.write("Feature unavailable")
             return False
         return True
-
+        
     def annotation_dump(self):
         ''' Provides a list of annotations '''
         if self.output_type.lower() != 'json':
@@ -216,7 +216,7 @@ class MainPage(webapp2.RequestHandler):
         if not url:
             self.status("Url not provided")
         try:
-            page = Page.query(Page.url == url).fetch()[0]
+           page = Page.query(Page.url == url).fetch()[0] 
         except:
             return self.status("Page not found.")
         ver = Version.query(ancestor=page.key)
@@ -269,7 +269,7 @@ class MainPage(webapp2.RequestHandler):
             try:
                 href = re.match("https?://[^/]*/", url).group() + href[1:]
             except:
-                self.response.write(url)
+                self.response.write(url);
                 raise
         elif not re.match("https?://", href):
             href = url + href
@@ -534,46 +534,9 @@ class MainPage(webapp2.RequestHandler):
         self.response.write(ADD_USER_FORM % cgi.escape(project_name))
         self.response.write(ACCESS_FORM % cgi.escape(project_name))
 
-    def handle_login(self, command):
-        redirect = self.request.get('redirect_url')
-        user = users.get_current_user()
-        if not redirect:
-            #redirect = self.request.url.split("/")[0] #doesn't work, returns http:
-            redirect = "/"
-            if self.request.get('project_name'):
-                redirect += self.request.get('project_name')
-        if () == 'logout':
-            if user:
-                self.redirect(users.create_logout_url(redirect))
-        elif command == 'login':
-            login_url = users.create_login_url(redirect)
-            if user:
-                self.redirect(users.create_logout_url(login_url))
-            else:
-                self.redirect(login_url)
-        elif command == 'get user':
-            if user:
-                self.json['username'] = user.email()
-                self.status('success')
-            else:
-                self.status('Not logged in.')
-            return True
-        elif command == 'smart login':
-            if user:
-                self.redirect(users.create_logout_url(redirect))
-            else:
-                login_url = users.create_login_url(redirect)
-                self.redirect(login_url)
-
     def handle_commands(self, command, project_name):
-        ''' Handles any commands passed by http get. 
-            Return True if you don't want the page to load afterwards.'''
-        command = command.lower().replace("_", " ")
-
-        # Login Commands
-        if command in ['login', 'logout', 'smart login', 'get user']:
-            return self.handle_login(command);
-        
+        ''' Handles any commands passed by http get. '''
+        command = command.replace("_", " ")
         # Project Selection Commands
         user = users.get_current_user()
         key = ndb.Key("Project", project_name)
@@ -584,8 +547,7 @@ class MainPage(webapp2.RequestHandler):
             return self.status('success')
         if command == 'create project':
             return [self.create_project(project_name)]
-
-        # Page commands
+        # Project commands
         project = key.get()
         if not project:
             return
@@ -610,7 +572,6 @@ class MainPage(webapp2.RequestHandler):
             return self.annotation_dump()
         if command == "page links":
             return self.get_page_links()
-
         # Admin commands
         if user not in project.admins:
             return self.status("Access denied.")
@@ -642,8 +603,8 @@ class MainPage(webapp2.RequestHandler):
             try:
                 user_name = users.User(self.request.get('user_name'))
             except:
-                return self.status("User not recognised.")
-
+                self.status("User not recognised.")
+                return
         # User access level commands.
         if self.request.get('command') == "add access":
             if user_name not in project.members:
@@ -653,7 +614,8 @@ class MainPage(webapp2.RequestHandler):
                 if user_name in project.members:
                     project.members.remove(user_name)
             else:
-                return self.status("Cannot remove final user from project.")
+                self.status("Cannot remove final user from project.")
+                return
         if self.request.get('command') == "add admin":
             if user_name not in project.admins:
                 project.admins.append(user_name)
@@ -662,7 +624,8 @@ class MainPage(webapp2.RequestHandler):
                 if user_name in project.admins:
                     project.admins.remove(user_name)
             else:
-                return self.status("Cannot remove final admin from project.")
+                self.status("Cannot remove final admin from project.")
+                return
         self.status('success')
         project.put()
 
@@ -677,10 +640,10 @@ class MainPage(webapp2.RequestHandler):
         command = self.request.get('command', None)
         # Handle all the different get commands'''
         if command:
-            project = self.handle_commands(command, project_name)
+            project = self.handle_commands(command.lower(), project_name)
             if project is True:
                 if self.output_type.lower() == 'json':
-                    self.response.write(dump(self.json, indent=4))
+                    self.response.write(repr(self.json))
                 return
         # Get the project details.'''
         if users.get_current_user():
@@ -720,7 +683,6 @@ class CSSPage(webapp2.RequestHandler):
             self.response.write("Malformed ID.")
         css = ndb.Key(CSS, css_id)
         self.response.write(css.get().contents)
-        
 
 application = webapp2.WSGIApplication([
     ('/end', MainPage),
