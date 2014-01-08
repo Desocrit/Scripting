@@ -19,19 +19,14 @@ function displayLoginError() {}
  */
 function displayServerError(xmlhttp)
 {
-    alert('Server be broken');
 }
 
 function displayAddPage()
 {
-    // Need to update pages list
-    alert('Page added!');
 }
 
 function displayCreatePage()
 {
-    // Need to update pages list
-    alert('Project created!');
 }
 
 /**
@@ -39,12 +34,10 @@ function displayCreatePage()
  */
 function displayTimeoutError()
 {
-    alert('Server be broken (timeout)');
 }
 
 function displayPageNotFound()
 {
-    alert('Page not found');
 }
 
 
