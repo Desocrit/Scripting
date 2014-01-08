@@ -327,6 +327,7 @@ class MainPage(webapp2.RequestHandler):
         base_url = re.search("<.*base href.*=.*", html)
         if base_url:
             url = self.get_href(base_url.group())
+        
         # Get the css IDs.
         hrefs = re.findall("<link.*?href.*?>", html)
         is_stylesheet = lambda x: re.search("rel.*=.*stylesheet", x)
@@ -337,6 +338,7 @@ class MainPage(webapp2.RequestHandler):
             if css_id:
                 html = sub(re.escape(css_url),
                            current_url + "css?id=" + str(css_id), html)
+
         ## Insert and id into all tags that dont contain one
         all_tags = re.findall("<[^/!].*?>", html)
         i = 0
@@ -349,6 +351,7 @@ class MainPage(webapp2.RequestHandler):
                     str(i) + '"'+tag[end:]
                 html = sub(re.escape(tag), newtag, html, 1)
                 i += 1
+
         html = self.replace_links(url, html)
         # Add a new version at the current time
         vid = Version.query().count()
@@ -833,6 +836,8 @@ class CSSPage(webapp2.RequestHandler):
         except:
             self.response.write("Malformed ID.")
         css = ndb.Key(CSS, css_id)
+
+        self.response.headers["Content-Type"] = "text/css"
         self.response.write(css.get().contents)
 
 
