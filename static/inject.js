@@ -57,12 +57,12 @@
         window.parent.annotations[annotationWrap.uniqid] = annotationWrap;
         
         $(".annotation_wrap").draggable
-        (
+        ({
             stop: (function(e, ui)
             {
                 window.parent.saveAnnotation
             })
-        )
+        })
         .click(function() {
             $(this).draggable( {disabled: true});
         }).dblclick(function() {
