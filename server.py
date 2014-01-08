@@ -148,6 +148,25 @@ class MainPage(webapp2.RequestHandler):
 
     # JSON stuff
 
+    def get_projects_for_user(self, user):
+        ''' Returns all the projects a user has access to '''
+                
+        admin = []
+        admin_projs = Project.query(Project.admins == user).fetch()
+        for proj in admin_projs:
+            admin.append(str(proj.name))
+            
+        normal = []
+        normal_projs = Project.query(Project.members == user).fetch()
+        for proj in normal_projs:
+            normal.append(str(proj.name))
+        
+        self.json['user'] = str(user)
+        self.json['admin_access'] = admin
+        self.json['normal_access'] = normal
+        self.status('success')
+        return True
+
     def project_to_json(self, project):
         ''' Shows details of a project, in json form.
             Goes as deep as versions, but not annotations '''
@@ -540,7 +559,7 @@ class MainPage(webapp2.RequestHandler):
             user = users.get_current_user()
             key = latest.key
             uniqid = Annotation.query().count()
-            annotation = Annotation(id=element_id, element_id=element_id,
+            annotation = Annotation(id=uniqid, element_id=element_id,
                                     parent=key, creator=user,
                                     x_pos=x_pos, y_pos=y_pos,
                                     uniqid=uniqid)
@@ -678,6 +697,8 @@ class MainPage(webapp2.RequestHandler):
             return self.status('success')
         if command == 'create project':
             return [self.create_project(project_name)]
+        if command == 'projects':
+            return self.get_projects_for_user(user)
 
         # Page commands
         project = key.get()
