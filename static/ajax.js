@@ -222,15 +222,30 @@ function switchProject(project_name){
 function deleteProject(){
     var project_name = project;
     var confirm_delete = confirm("Are you sure you want to delete project " + project_name + "?");
-    if(confirm_delete) {
-        switchProject(project_name);
-        if(projects.length = 1) {
-            alert("Sorry you can't delete your last project, make another one first!");
-        } else {
-        jsonCall("Delete+Project",null,displayCreatePage, displayServerError);
-        listProjects();
-        switchProject(projects[0]);
-        alert("Project " + project_name + " deleted. Switched to " + project);
+
+    if(confirm_delete)
+    {
+        if(projects.length == 1)
+        {
+            alert("Sorry you can't delete your only project, make another one first!");
+        }
+        else
+        {
+            jsonCall("Delete+Project",null,displayCreatePage, displayServerError);
+            var newProject;
+            
+            for (var i = 0; i < projects.length; i++)
+            {
+                if (projects[i] != project_name)
+                {
+                    newProject = projects[i];
+                    break;
+                }
+            }
+            
+            alert("Project " + project_name + " deleted. Switched to " + newProject);
+            switchProject(newProject);
+            listProjects();
         }
     }
 }
