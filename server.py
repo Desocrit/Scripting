@@ -1,5 +1,6 @@
 import cgi
 import urllib
+import HTMLParser
 
 from google.appengine.api import users
 from google.appengine.ext import ndb
@@ -284,9 +285,10 @@ class MainPage(webapp2.RequestHandler):
     def add_css(self, url):
         ''' Reads a css file, adding to or getting from the database. '''
         try:
-            css = urllib.urlopen(url).read()
+            css = urllib.urlopen(HTMLParser.HTMLParser().unescape(url)).read()
         except:
-            return self.warning("CSS not found.")
+            return False
+
         hash = md5(css).hexdigest()
         existing_css = CSS.query(CSS.hash == hash).fetch()
         if existing_css:
@@ -297,8 +299,6 @@ class MainPage(webapp2.RequestHandler):
             cached_css = CSS(contents=css, hash=hash)
             cached_css.put()
             # Create proxy url
-            proxy_url = re.match("https?://[^/]*/", self.request.url).group()
-            proxy_url += "css?id=" + str(cached_css.key.id())
         self.status('success')
         return cached_css.key.id()
 
