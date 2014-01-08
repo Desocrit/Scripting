@@ -247,7 +247,8 @@ function saveAnnotations()
               'message=' + annotations[i].innerText
             + '&url=' + encodeURIComponent(currentPage)
             + '&element_id=' + annotations[i].subjectElement.id
-            + '&x_pos=1&y_pos=1',
+            + '&x_pos=' + parseInt(annotations[i].style.left)
+            + '&y_pos=' + parseInt(annotations[i].style.top),
             (function() { }),
             displayServerError
         );
@@ -262,14 +263,14 @@ function pingForAnnotations()
         'url=' + encodeURIComponent(currentPage),
         (function(response)
         {
-            for (var i = 0; i < response.SOMETHING.length; i++)
+            for (var i = 0; i < response.annotations.length; i++)
             {
                 callback
                 (
-                    response.SOMETHING[i].x_pos,
-                    response.SOMETHING[i].y_pos,
-                    response.SOMETHING[i].element_id,
-                    response.SOMETHING[i].message
+                    response.annotations[i].x_pos,
+                    response.annotations[i].y_pos,
+                    response.annotations[i].element_id,
+                    response.annotations[i].message
                 )
             }
         }),
