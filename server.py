@@ -327,36 +327,16 @@ class MainPage(webapp2.RequestHandler):
         base_url = re.search("<.*base href.*=.*", html)
         if base_url:
             url = self.get_href(base_url.group())
-        
-        # Get the css IDs.
-        hrefs = re.findall("<link.*?href.*?>", html)
-        is_stylesheet = lambda x: re.search("rel.*=.*stylesheet", x)
-        css_urls = [self.get_href(h) for h in hrefs if is_stylesheet(h)]
-        css_ids = [self.add_css(self.complete_href(url, c)) for c in css_urls]
-        current_url = re.match("https?://[^/]*/", self.request.url).group()
-        for (css_url, css_id) in zip(css_urls, css_ids):
-            if css_id:
-                html = sub(re.escape(css_url),
-                           current_url + "css?id=" + str(css_id), html)
 
-        ## Insert and id into all tags that dont contain one
-        all_tags = re.findall("<[^/!].*?>", html)
-        i = 0
-        for tag in all_tags:
-            if not re.search("id=", tag):
-                end = -1
-                if tag[-2] == '/':
-                    end = -2
-                newtag = tag[0:end] + ' id="ServerAddedTag' + \
-                    str(i) + '"'+tag[end:]
-                html = sub(re.escape(tag), newtag, html, 1)
-                i += 1
-
+        html, css_ids = self.replace_css_links(url, html)
+        html = self.removeScripts(html)
+        html = self.addElementIds(html)
         html = self.replace_links(url, html)
+
         # Add a new version at the current time
         vid = Version.query().count()
         version = Version(parent=page.key, id=vid, v_id=vid, creator=user)
-        version.contents = sub(r'<script(.)*?</script>', "", html, 0, re.DOTALL)
+        version.contents = html
         version.css_ids = [ci for ci in css_ids if ci]
         version.put()
         return self.status('success')
@@ -465,6 +445,37 @@ class MainPage(webapp2.RequestHandler):
             html = re.sub(re.escape(old_url), new_url, html)
         return html
 
+    def replace_css_links(self, url, html):
+        # Get the css IDs.
+        hrefs = re.findall("<link.*?href.*?>", html)
+        is_stylesheet = lambda x: re.search("rel.*=.*stylesheet", x)
+        css_urls = [self.get_href(h) for h in hrefs if is_stylesheet(h)]
+        css_ids = [self.add_css(self.complete_href(url, c)) for c in css_urls]
+        current_url = re.match("https?://[^/]*/", self.request.url).group()
+        for (css_url, css_id) in zip(css_urls, css_ids):
+            if css_id:
+                html = sub(re.escape(css_url),
+                           current_url + "css?id=" + str(css_id), html)
+        return (html, css_ids)
+
+    def addElementIds(self, html):
+        ## Insert and id into all tags that dont contain one
+        all_tags = re.findall("<[^/!].*?>", html)
+        i = 0
+        for tag in all_tags:
+            if not re.search("id=", tag):
+                end = -1
+                if tag[-2] == '/':
+                    end = -2
+                newtag = tag[0:end] + ' id="ServerAddedTag' + \
+                    str(i) + '"'+tag[end:]
+                html = sub(re.escape(tag), newtag, html, 1)
+                i += 1
+        return html
+
+    def removeScripts(self, html):
+        return sub(r'<script(.)*?</script>', "", html, 0, re.DOTALL)
+
     def print_js_error(self, msg):
         self.response.write('<script>alert(\'' + msg + '\');</script>');
         return True
@@ -490,7 +501,10 @@ class MainPage(webapp2.RequestHandler):
             tp.put()
         else:
             tp[0].temp_url = url
+
+        html, css = self.replace_css_links(url, html)
         html = self.replace_links(url, html)
+        html = self.removeScripts(html)
         self.response.write(html)
         return True
 
