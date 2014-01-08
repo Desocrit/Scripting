@@ -131,6 +131,8 @@ function getPage(url)
 {
     var frame = document.getElementById('page_holder');
     
+    annotations = { };
+
     frame.src =
           '/end?command=View+Page'
         + '&url=' + encodeURIComponent(url)
@@ -219,13 +221,13 @@ function buttonAddPage()
 function listPages()
 {
     var links = document.getElementById('links');
-    links.innerHTML = '';
 
     jsonCall
     (
         '', '',
         (function(response)
         {
+            links.innerHTML = '';
             for (var i = 0; i < response.pages.length; i++)
             {
                 var url = response.pages[i].url;
@@ -290,10 +292,11 @@ function pingForAnnotations()
 
 function ping()
 {
+    saveAnnotations();
     pingForAnnotations();
     listPages();
 
-    window.setTimeout(ping, 100);
+    window.setTimeout(ping, 5000);
 }
 
 
@@ -322,3 +325,8 @@ function writeUsername()
         function(){}
     );
 }
+
+$(document).ready(function()
+{
+    //ping();
+});
