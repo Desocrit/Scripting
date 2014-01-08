@@ -246,3 +246,9 @@ function setCallback(cb)
 {
     callback = cb;
 }
+
+function isLoggedIn()
+{
+	jsonCall('get_user', null, function(){return true;}, function(){return false;});
+	//return false;
+}
