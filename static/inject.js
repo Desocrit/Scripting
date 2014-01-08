@@ -6,12 +6,13 @@
 
     window.oncontextmenu = (function(_e)
     {
-        if (_e.target.isAnnotation) return false;
+        var el = _e.toElement || _e.target;
+        if (el.isAnnotation) return false;
 
         menu.style.display = 'block';
         menu.style.left    = _e.layerX + 'px';
         menu.style.top     = _e.layerY + 'px';
-        currentElement     = _e.target.id;
+        currentElement     = el.id;
         e                  = _e;
 
         return false;
@@ -32,6 +33,7 @@
         annotationContent.className = 'annotation_text';
         annotationContent.innerHTML        = text;
         annotationContent.contentEditable  = true;
+        annotationWrap.contentEl           = annotationContent;
 
         menu.style.display = 'none';
         document.body.appendChild(annotationWrap);

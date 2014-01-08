@@ -265,13 +265,23 @@ function pingForAnnotations()
         {
             for (var i = 0; i < response.annotations.length; i++)
             {
-                callback
-                (
-                    response.annotations[i].x_pos,
-                    response.annotations[i].y_pos,
-                    response.annotations[i].element_id,
-                    response.annotations[i].contents
-                )
+                if (typeof annotations[response.annotations[i].element_id] == 'undefined')
+                {
+                    callback
+                    (
+                        response.annotations[i].x_pos,
+                        response.annotations[i].y_pos,
+                        response.annotations[i].element_id,
+                        response.annotations[i].contents
+                    );
+                }
+                else
+                {
+                    var anot                 = annotations[response.annotations[i].element_id];
+                    anot.contentEl.innerText = response.annotations[i].contents;
+                    anot.style.left          = response.annotations[i].x_pos + 'px';
+                    anot.style.top           = response.annotations[i].y_pos + 'px';
+                }
             }
         }),
         displayServerError
