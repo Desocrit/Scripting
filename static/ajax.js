@@ -295,11 +295,10 @@ function pingForAnnotations()
 
 function ping()
 {
-
-    try { saveAnnotations(); } catch (e){}
-    try { pingForAnnotations();  } catch (e){}
-    try { listPages();  } catch (e){}
-    try { listProjects();  } catch (e){}
+    saveAnnotations();
+    pingForAnnotations();
+    listPages();
+    listProjects();
 
     window.setTimeout(ping, 5000);
 }
