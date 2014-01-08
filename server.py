@@ -321,7 +321,7 @@ class MainPage(webapp2.RequestHandler):
         if base_url:
             url = self.get_href(base_url.group())
         # Get the css IDs.
-        hrefs = re.findall(".*href.*", html)
+        hrefs = re.findall("<link.*?href.*?>", html)
         is_stylesheet = lambda x: re.search("rel.*=.*stylesheet", x)
         css_urls = [self.get_href(h) for h in hrefs if is_stylesheet(h)]
         css_ids = [self.add_css(self.complete_href(url, c)) for c in css_urls]
