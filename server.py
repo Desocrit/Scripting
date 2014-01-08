@@ -483,7 +483,10 @@ class MainPage(webapp2.RequestHandler):
                                     parent=key, creator=user,
                                     x_pos=x_pos, y_pos=y_pos)
             annotation.put()
-        key = annotation.key
+        if isinstance(annotation, list):
+            key = annotation[0].key
+        else:
+            key = annotation.key
         av_id = AnnotationVersion.query().count()
         version = AnnotationVersion(
             parent=key, id=av_id, contents=str(message))
