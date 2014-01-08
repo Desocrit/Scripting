@@ -517,6 +517,17 @@ class MainPage(webapp2.RequestHandler):
         if not query or not query.temp_url:
             return self.status("No temp page found.")
         return self.add_page(query.temp_url)
+    
+    def delete_annotation(self):
+        uid = self.request.get("uniqid")
+        if not uid:
+            return self.status("No UID was specified")
+        annotation = Annotation.query(Annotation.uniqid==uid).fetch()
+        if not annotation:
+            return self.status("No annotation with that UID")
+        annotation[0].key.delete()
+        self.status('success')
+            
 
     def annotate(self):
         ''' Annotates a position in the page. Updates existing annotation
@@ -662,6 +673,8 @@ class MainPage(webapp2.RequestHandler):
             return self.annotate()
         if command == "get annotations":
             return self.annotation_dump()
+        if command == "delete annotation":
+            return self.delete_annotation()
         if command == "page links":
             return self.get_page_links()
 
@@ -701,7 +714,8 @@ class MainPage(webapp2.RequestHandler):
             return self.status("Access denied.")
         if command in ['add or replace page', 'update page', 'view page',
                        'view or add page', 'page details', 'page links',
-                       'latest page details', 'annotate', 'get annotations']:
+                       'latest page details', 'annotate', 'get annotations',
+                       'delete annotation']:
             return self.handle_page_commands(command, project, user)
 
         # Admin commands
