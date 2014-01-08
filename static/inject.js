@@ -32,13 +32,14 @@
 
         var annotationContent = document.createElement('textarea');
         annotationContent.className = 'annotation_text';
-        annotationContent.value            = text;
-        annotationContent.contentEditable  = true;
+        annotationContent.value           = text;
+        annotationContent.contentEditable = true;
         annotationContent.on
-        annotationContent.isAnnotation     = true;
-        annotationContent.onkeyup          = window.parent.saveAnnotation;
-        annotationContent.wrapper          = annotationWrap;
-        annotationWrap.contentEl           = annotationContent;
+        annotationContent.isAnnotation    = true;
+        annotationContent.onfocus         = (function() { this.wrapper.inEdit = true; });
+        annotationContent.onblur          = window.parent.saveAnnotation;
+        annotationContent.wrapper         = annotationWrap;
+        annotationWrap.contentEl          = annotationContent;
 
 
         var closeDiv = document.createElement('div');
@@ -58,10 +59,8 @@
         
         $(".annotation_wrap").draggable
         ({
-            stop: (function(e, ui)
-            {
-                window.parent.saveAnnotation
-            })
+            stop: window.parent.saveAnnotation,
+            start: (function() { this.inEdit = true; })
         })
         .click(function() {
             $(this).draggable( {disabled: true});

@@ -313,22 +313,31 @@ function saveAnnotations()
     }
 }
 
-function saveAnnotation()
+function saveAnnotation(e)
 {
-    var anot = this.wrapper;
+    if (this.wrapper)
+    {
+        var anot = this.wrapper;
+    }
+    else
+    {
+        var anot = this;
+    }
 
     jsonCall
     (
-      'Annotate',
-      'message=' + anot.contentEl.value
-      + '&url=' + encodeURIComponent(currentPage)
-      + '&element_id=' + anot.subjectElement.id
-      + '&uniqid=' + anot.uniqid
-      + '&x_pos=' + parseInt(anot.style.left)
-      + '&y_pos=' + parseInt(anot.style.top),
-      (function() { }),
-      displayServerError
-      );
+          'Annotate',
+          'message=' + anot.contentEl.value
+        + '&url=' + encodeURIComponent(currentPage)
+        + '&element_id=' + anot.subjectElement.id
+        + '&uniqid=' + anot.uniqid
+        + '&x_pos=' + parseInt(anot.style.left)
+        + '&y_pos=' + parseInt(anot.style.top),
+        (function() { }),
+        displayServerError
+    );
+
+    anot.inEdit = false;
 }
 
 function pingForAnnotations()
@@ -364,10 +373,14 @@ function pingForAnnotations()
                         }
                         else
                         {
-                            var anot             = annotations[response.annotations[i].uniqid];
-                            anot.contentEl.value = response.annotations[i].contents;
-                            anot.style.left      = response.annotations[i].x_pos + 'px';
-                            anot.style.top       = response.annotations[i].y_pos + 'px';
+                            var anot = annotations[response.annotations[i].uniqid];
+
+                            if (!anot.inEdit)
+                            {
+                                anot.contentEl.value = response.annotations[i].contents;
+                                anot.style.left      = response.annotations[i].x_pos + 'px';
+                                anot.style.top       = response.annotations[i].y_pos + 'px';
+                            }
                         }
                     }
                 }
