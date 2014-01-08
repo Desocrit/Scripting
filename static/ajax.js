@@ -453,11 +453,11 @@ function writeUsername()
     jsonCall
     (
         'get user', null,
+        function(){},
         (function(response)
         {
             nameText.innerHTML = response.username;
-        }),
-        function(){}
+        })
         );
 }
 
