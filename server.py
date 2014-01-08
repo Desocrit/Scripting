@@ -106,7 +106,6 @@ class Page(ndb.Model):
     creator = ndb.UserProperty()
     url = ndb.StringProperty()
     created = ndb.DateTimeProperty(auto_now_add=True)
-    # Todo: Images
 
 
 class CSS(ndb.Model):
@@ -417,11 +416,13 @@ class MainPage(webapp2.RequestHandler):
 
     def delete_version(self, version):
         for annotation in Annotation.query(ancestor=version).fetch():
-            for av in AnnotationVersion.query(ancestor=annotation).fetch():
+            for av in AnnotationVersion.query(ancestor=annotation.key).fetch():
                 av.key.delete()
             annotation.key.delete()
         for css_id in version.get().css_ids:
             css = ndb.Key(CSS, css_id)
+            if not css.get():
+                continue
             css.get().pages_using -= 1
             if css.get().pages_using == 0:
                 css.delete()
@@ -540,27 +541,24 @@ class MainPage(webapp2.RequestHandler):
         latest = Version.query(ancestor=key)
         latest = latest.order(-Version.time_added).fetch(1)[0]
         annotation = Annotation.query(Annotation.uniqid == uid,
-            ancestor=latest.key).fetch()
+                                      ancestor=latest.key).fetch()
         user = users.get_current_user()
         if annotation:
             key = annotation[0].key
         else:
             # Create and attach an annotation.
             key = latest.key
-            uniqid = Annotation.query().count()
             annotation = Annotation(id=uid, element_id=element_id,
                                     uniqid=uid, parent=key, creator=user,
                                     x_pos=x_pos, y_pos=y_pos)
             annotation.put()
-            key=annotation.key
+            key = annotation.key
         av_id = AnnotationVersion.query().count()
         version = AnnotationVersion(parent=key, id=av_id,
                                     av_id=av_id, contents=str(message))
         version.creator = user
         version.put()
         self.status('success')
-
-
 
     # HTML Viewing methods
 
@@ -603,6 +601,17 @@ class MainPage(webapp2.RequestHandler):
         ''' Draws the admin and user access forms '''
         self.response.write(ADD_USER_FORM % cgi.escape(project_name))
         self.response.write(ACCESS_FORM % cgi.escape(project_name))
+
+    def list_users_on_project(self, project_name):
+        project = ndb.Key(Project, project_name).get()
+        self.json['users'] = [user.email() for user in project.members]
+        self.json['admins'] = [user.email() for user in project.admins]
+        return self.status('success')
+
+    def delete_all(self, project_name):
+        project = ndb.Key(Project, project_name)
+        for page in Page.query(ancestor=project).fetch():
+            self.delete_page(page.key)
 
     def handle_login(self, command):
         redirect = self.request.get('redirect_url')
@@ -679,8 +688,10 @@ class MainPage(webapp2.RequestHandler):
             return self.status('success')
         if command == 'create project':
             return [self.create_project(project_name)]
-        if command == 'projects':
+        if command == 'list projects':
             return self.get_projects_for_user(user)
+        if command == 'list users':
+            return self.list_users_on_project(project_name)
 
         # Page commands
         project = key.get()
@@ -696,6 +707,8 @@ class MainPage(webapp2.RequestHandler):
         # Admin commands
         if user not in project.admins:
             return self.status("Access denied.")
+        if command == 'delete all':
+            return self.delete_all(project_name)
         if command == 'delete project':
             try:
                 for page in Page.query(ancestor=key).fetch():
