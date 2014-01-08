@@ -66,12 +66,6 @@ DEFAULT_OUTPUT_TYPE = "html"
 DEFAULT_PROJECT_NAME = 'default_project'
 
 
-class TempPage(ndb.Model):
-    ''' Saved settings of a user. '''
-    user = ndb.UserProperty()
-    temp_url = ndb.StringProperty()
-
-
 class AnnotationVersion(ndb.Model):
     ''' A version of an annotation.
         This can be checked and updated in realtime. '''
@@ -87,6 +81,7 @@ class Annotation(ndb.Model):
     element_id = ndb.StringProperty()
     x_pos = ndb.IntegerProperty()
     y_pos = ndb.IntegerProperty()
+    uniqid = ndb.IntegerProperty()
 
 
 class Version(ndb.Model):
@@ -146,6 +141,25 @@ class MainPage(webapp2.RequestHandler):
             self.response.write("<p><h1>"+message+"</h1></p><hr>")
 
     # JSON stuff
+    
+    def get_projects_for_user(self, user):
+        ''' Returns all the projects a user has access to '''
+                
+        admin = []
+        admin_projs = Project.query(Project.admins == user).fetch()
+        for proj in admin_projs:
+            admin.append(str(proj.name))
+            
+        normal = []
+        normal_projs = Project.query(Project.members == user).fetch()
+        for proj in normal_projs:
+            normal.append(str(proj.name))
+        
+        self.json['user'] = str(user)
+        self.json['admin_access'] = admin
+        self.json['normal_access'] = normal
+        self.status('success')
+        return True
 
     def project_to_json(self, project):
         ''' Shows details of a project, in json form.
@@ -233,6 +247,7 @@ class MainPage(webapp2.RequestHandler):
             annotation['x_pos'] = str(a.x_pos)
             annotation['y_pos'] = str(a.y_pos)
             annotation['element_id'] = a.element_id
+            annotation['uniqid'] = a.uniqid
             vkey = ndb.Key(Project, project_name, Page, page.url,
                            Version, ver.v_id, Annotation, a.element_id)
             latest = AnnotationVersion.query(ancestor=vkey)
@@ -349,7 +364,20 @@ class MainPage(webapp2.RequestHandler):
                     str(i) + '"'+tag[end:]
                 html = sub(re.escape(tag), newtag, html, 1)
                 i += 1
-        html = self.replace_links(url, html)
+        '''
+        # Replace all links with server requests
+        all_links = re.findall("<a.*?href.*?>", html)
+        for link in all_links:
+            orig_href = self.get_href(link)
+            if not orig_href:
+                continue
+            href = self.complete_href(url, orig_href)
+            commands = {"url": href, "command": "View or Add Page",
+                        "project_name": self.request.get('project_name')}
+            proxy_url = re.match("https?://[^/]*/", self.request.url).group()
+            proxy_url += "end?"+urllib.urlencode(commands)
+            html = sub(re.escape(orig_href), proxy_url, html, 1)
+        '''
         # Add a new version at the current time
         vid = Version.query().count()
         version = Version(parent=page.key, id=vid, v_id=vid, creator=user)
@@ -433,7 +461,6 @@ class MainPage(webapp2.RequestHandler):
             self.response.write("<p>" + str(cgi.escape(page.url) + "</p>"))
 
     def get_page_links(self):
-        ''' Lists all of the links on a page'''
         if self.output_type == 'html':
             return self.page_links(self)
         if self.output_type == 'json':
@@ -444,70 +471,18 @@ class MainPage(webapp2.RequestHandler):
             self.json['pages'] = [page.url for page in pages]
             return self.status('success')
 
-    def link_href(self, url, ext):
-        result = re.match("https?://[^/]*/", self.request.url).group()
-        result += 'end?command=temp_view&url='
-        return result + cgi.escape(self.complete_href(url, ext))
-
-    def replace_links(self, url, html):
-        ''' Replaces all links in the html with 'temp page' links '''
-        base_url = re.search("<.*base href.*=.*", html, re.DOTALL)
-        if base_url:
-            url = self.get_href(base_url.group())
-        urls = re.findall('(<a.*?href\s*=\s*")(.*?)"', html, re.DOTALL)
-        changed_urls = [self.link_href(url, ext[1]) for ext in urls]
-        for i in range(len(urls)):
-            old_url = urls[i][0] + urls[i][1]
-            new_url = urls[i][0] + changed_urls[i]
-            
-            html = re.sub(re.escape(old_url), new_url, html)
-        return html
-
-    def temp_get(self):
-        ''' Grabs a temporary version of the page, ready to save on-demand '''
-        # Get some details.
-        url = self.request.get('url')
-        if not url:
-            return self.status("Url not found")
-        try:
-            html = urllib.urlopen(url).read()
-            html = html.decode("utf-8")
-        except:
-            return self.status("Page not found.")
-        user = users.get_current_user()
-        if not user:
-            return self.status("You must be logged in to use this command")
-        # Save the page details
-        tp = TempPage.query(TempPage.user == user).fetch()
-        if tp == []:
-            tp = TempPage(user=user, temp_url=url)
-            tp.put()
-        else:
-            tp[0].temp_url = url
-        html = self.replace_links(url, html)
-        self.response.write(html)
-        self.status('success')
-        return True
-
-    def get_temp_page(self):
-        ''' Grabs the temporarily saved page '''
-        user = users.get_current_user()
-        if not user:
-            return self.status("You must be logged in to use this command")
-        query = TempPage.query(TempPage.user == user).fetch()[0]
-        if not query or not query.temp_url:
-            return self.status("No temp page found.")
-        return self.add_page(query.temp_url)
-
     def annotate(self):
         ''' Annotates a position in the page. Updates existing annotation
             if the annotation already exists. '''
         message = self.request.get('message')
         element_id = self.request.get('element_id')
         x_pos, y_pos = self.request.get('x_pos'), self.request.get('y_pos')
+        uniqid = self.request.get("uniqid")
         try:
             x_pos = int(x_pos)
             y_pos = int(y_pos)
+            if uniqid:
+                uniqid = int(uniqid)
         except:
             return self.status("Arguments cannot be converted to integers.")
         if not x_pos or not y_pos or not message or not element_id:
@@ -520,18 +495,25 @@ class MainPage(webapp2.RequestHandler):
             return self.status("Page not found")
         latest = Version.query(ancestor=key)
         latest = latest.order(-Version.time_added).fetch(1)[0]
-        annotation = Annotation.query(
-            Annotation.x_pos == x_pos,
-            Annotation.y_pos == y_pos,
-            ancestor=latest.key
-        ).fetch()
-        if not annotation:
+        
+        if uniqid:
+            # Fetch and update annotation
+            annotation = Annotation.query(
+                Annotation.uniqid == uniqid,
+                ancestor=latest.key
+            ).fetch()
+            annotation.x_pos = x_pos
+            annotation.y_pos = y_pos
+            annotation.put()
+        if not uniqid or not annotation:
             # Create and attach an annotation.
             user = users.get_current_user()
             key = latest.key
+            uniqid = Annotation.query().count()
             annotation = Annotation(id=element_id, element_id=element_id,
                                     parent=key, creator=user,
-                                    x_pos=x_pos, y_pos=y_pos)
+                                    x_pos=x_pos, y_pos=y_pos,
+                                    uniqid=uniqid)
             annotation.put()
         if isinstance(annotation, list):
             key = annotation[0].key
@@ -618,8 +600,34 @@ class MainPage(webapp2.RequestHandler):
                 login_url = users.create_login_url(redirect)
                 self.redirect(login_url)
 
-    def handle_page_commands(self, command, project, user):
-        ''' Handles commands related to pages. '''
+    def handle_commands(self, command, project_name):
+        ''' Handles any commands passed by http get. 
+            Return True if you don't want the page to load afterwards.'''
+        command = command.lower().replace("_", " ")
+
+        # Login Commands
+        if command in ['login', 'logout', 'smart login', 'get user']:
+            return self.handle_login(command);
+        
+        # Project Selection Commands
+        user = users.get_current_user()
+        key = ndb.Key("Project", project_name)
+        if command == 'switch project':
+            self.redirect('/?' + urllib.urlencode(
+                {'project_name': project_name}))
+            self.project_to_json(key.get())
+            return self.status('success')
+        if command == 'create project':
+            return [self.create_project(project_name)]
+        if command == "projects":
+            return self.get_projects_for_user(user)
+
+        # Page commands
+        project = key.get()
+        if not project:
+            return
+        if user not in project.members and not project.public:
+            return self.status("Access denied.")
         if command == "add or replace page":
             return self.add_page(False)
         if command == "update page":
@@ -639,42 +647,6 @@ class MainPage(webapp2.RequestHandler):
             return self.annotation_dump()
         if command == "page links":
             return self.get_page_links()
-
-    def handle_commands(self, command, project_name):
-        ''' Handles any commands passed by http get. 
-            Return True if you don't want the page to load afterwards.'''
-        command = command.lower().replace("_", " ")
-
-        # Login Commands
-        if command in ['login', 'logout', 'smart login', 'get user']:
-            return self.handle_login(command);
-        # Temporary viewing commands.
-        if command == 'temp view':
-            return self.temp_get()
-        if command == 'grab temp page':
-            return self.get_temp_page()
-        
-        # Project Selection Commands
-        user = users.get_current_user()
-        key = ndb.Key("Project", project_name)
-        if command == 'switch project':
-            self.redirect('/?' + urllib.urlencode(
-                {'project_name': project_name}))
-            self.project_to_json(key.get())
-            return self.status('success')
-        if command == 'create project':
-            return [self.create_project(project_name)]
-
-        # Page commands
-        project = key.get()
-        if not project:
-            return
-        if user not in project.members and not project.public:
-            return self.status("Access denied.")
-        if command in ['add or replace page', 'update page', 'view page',
-                       'view or add page', 'page details', 'page links',
-                       'latest page details', 'annotate', 'get annotations']:
-            return self.handle_page_commands(command, project, user)
 
         # Admin commands
         if user not in project.admins:
