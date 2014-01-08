@@ -28,18 +28,20 @@
         annotationWrap.style.top        = y + 'px';
         annotationWrap.isAnnotation     = true;
         annotationWrap.subjectElement   = document.getElementById(el);
+        annotationWrap.uniqid           = generateUid();
 
         var annotationContent = document.createElement('div');
         annotationContent.className = 'annotation_text';
         annotationContent.innerHTML        = text;
         annotationContent.contentEditable  = true;
+        annotationContent.isAnnotation     - true;
         annotationWrap.contentEl           = annotationContent;
 
         menu.style.display = 'none';
         document.body.appendChild(annotationWrap);
         annotationWrap.appendChild(annotationContent);
 
-        window.parent.annotations[el] = annotationWrap;
+        window.parent.annotations[annotationWrap.uniqid] = annotationWrap;
         
         $(".annotation_wrap").draggable()
           .click(function() {
@@ -72,3 +74,15 @@
 
     window.parent.setCallback(makeAnnotation);
 })();
+
+var generateUid = function (separator)
+{
+    var delim = separator || "-";
+
+    function S4()
+    {
+        return (((1 + Math.random()) * 0x10000) | 0).toString(16).substring(1);
+    }
+
+    return (S4() + S4() + delim + S4() + delim + S4() + delim + S4() + delim + S4() + S4() + S4());
+};

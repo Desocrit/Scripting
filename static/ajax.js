@@ -249,6 +249,7 @@ function saveAnnotations()
               'message=' + annotations[i].innerText
             + '&url=' + encodeURIComponent(currentPage)
             + '&element_id=' + annotations[i].subjectElement.id
+            + '&uniqid=' + annotations[i].uniqid
             + '&x_pos=' + parseInt(annotations[i].style.left)
             + '&y_pos=' + parseInt(annotations[i].style.top),
             (function() { }),
@@ -267,7 +268,7 @@ function pingForAnnotations()
         {
             for (var i = 0; i < response.annotations.length; i++)
             {
-                if (typeof annotations[response.annotations[i].element_id] == 'undefined')
+                if (typeof annotations[response.annotations[i].uniqid] == 'undefined')
                 {
                     callback
                     (
@@ -279,7 +280,7 @@ function pingForAnnotations()
                 }
                 else
                 {
-                    var anot                 = annotations[response.annotations[i].element_id];
+                    var anot                 = annotations[response.annotations[i].uniqid];
                     anot.contentEl.innerText = response.annotations[i].contents;
                     anot.style.left          = response.annotations[i].x_pos + 'px';
                     anot.style.top           = response.annotations[i].y_pos + 'px';
@@ -304,11 +305,6 @@ function setCallback(cb)
 {
     callback = cb;
 }
-
-//function isLoggedIn()
-//{
-	//jsonCall('get user', null, function(){return true;}, function(){return false;});
-//}
 
 function writeUsername()
 {
