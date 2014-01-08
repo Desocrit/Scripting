@@ -453,13 +453,20 @@ function writeUsername()
     );
 }
 
-function tempView(url){
+function tempView(url)
+{
+    /*
     jsonCall
     (
         'temp view', 'url=' + url,
         (function(){}),
         function(){}
-    );    
+    ); 
+    */
+
+    document.getElementById('page_holder').src =
+          '/end?command=Temp+View'
+        + '&url=' + encodeURIComponent(url);   
 }
 
 $(document).ready(function()

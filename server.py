@@ -276,8 +276,7 @@ class MainPage(webapp2.RequestHandler):
             try:
                 href = re.match("https?://[^/]*/", url).group() + href[1:]
             except:
-                self.response.write(url)
-                raise
+                return href
         elif not re.match("https?://", href):
             href = url + href
         return href
@@ -315,7 +314,7 @@ class MainPage(webapp2.RequestHandler):
             html = urllib.urlopen(url).read()
             html = html.decode("utf-8")
         except:
-            self.status("Page not found.")
+            self.status("Domain Not Found")
             return
         # Add the page to the database if it does not exist, otherwise get it.
         if not Page.query(Page.url == url, ancestor=key).fetch():
@@ -472,8 +471,8 @@ class MainPage(webapp2.RequestHandler):
         try:
             html = urllib.urlopen(url).read()
             html = html.decode("utf-8")
-        except:
-            return self.status("Page not found.")
+        except Exception as inst:
+            return self.status(inst)
         user = users.get_current_user()
         if not user:
             return self.status("You must be logged in to use this command")
@@ -486,7 +485,6 @@ class MainPage(webapp2.RequestHandler):
             tp[0].temp_url = url
         html = self.replace_links(url, html)
         self.response.write(html)
-        self.status('success')
         return True
 
     def get_temp_page(self):
