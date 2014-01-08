@@ -49,8 +49,6 @@
 					<li>Switch Project
 					<!-- nested menu (one level) demo below -->
 						<ul id="project_list">
-							<li onclick="switchProject('testing')">testing</li>
-							<li onclick="switchProject('default_project')">default_project</li>
 						</ul>
 					</li>
 
@@ -74,6 +72,7 @@
 </header>
 <div id ="container">
 	<div id="sidebar">
+    <b id="project_name_el"></b>
 		<h1>Bookmarks</h1>
 		<ul id="links">
 		</ul>
@@ -96,6 +95,7 @@
 		</div>
 	</footer>
 	<script text="text/javascript">
+<<<<<<< HEAD
 		jsonCall('get user', null, displayServerError, function(response){ 
 		 	if  (response.status == 'true') {
 		 		login();
@@ -105,6 +105,24 @@
 		 		login_url();
 		 	}
 		});
+=======
+		function isLoggedIn()
+		{
+			//return jsonCall('get user', null, function(){return true;}, function(){return false;});
+			return true;
+		}
+		if(isLoggedIn())
+		{
+			$("#front_page").animate({opacity: 0.0}).css({top: "-120%"}, 500);
+			$("#container").css({opacity: 0.0, visibility: "visible"}).animate({opacity: 1.0}, 500);
+			$("header").animate({top: '0'}, 500);
+			$("footer").animate({bottom: '0'}, 500);
+			listPages();
+			writeUsername();
+		}	
+
+    listProjects(true);
+>>>>>>> 71320c4e245788d68dc21aba4e9ed6da26fc716a
 	</script>
 </body>
 </html>

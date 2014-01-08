@@ -224,11 +224,13 @@ function createProject(){
 
 function switchProject(project_name){
     project = project_name;
+    document.getElementById('project_name_el').innerHTML = project_name;
     listPages();
 }
 
 function deleteProject(){
     var project_name = project;
+<<<<<<< HEAD
     var confirm_delete = confirm("Are you sure you want to delete project " + project_name + "?");
     if(confirm_delete) {
         switchProject(project_name);
@@ -239,6 +241,33 @@ function deleteProject(){
             listProjects();
             switchProject(projects[0]);
             alert("Project " + project_name + " deleted. Switched to " + project);
+=======
+
+    if(projects.length == 1)
+    {
+        alert("Sorry you can't delete your only project, make another one first!");
+    }
+    else
+    {
+        if(confirm("Are you sure you want to delete project " + project_name + "?"))
+        {
+           
+            jsonCall("Delete+Project",null,displayCreatePage, displayServerError);
+            var newProject;
+            
+            for (var i = 0; i < projects.length; i++)
+            {
+                if (projects[i].name != project_name)
+                {
+                    newProject = projects[i].name;
+                    break;
+                }
+            }
+
+            alert("Project " + project_name + " deleted. Switched to " + newProject);
+            switchProject(newProject);
+            listProjects();
+>>>>>>> 71320c4e245788d68dc21aba4e9ed6da26fc716a
         }
     }
 }
@@ -317,6 +346,8 @@ function saveAnnotation()
 
 function pingForAnnotations()
 {
+    if (!currentPage) return;
+    
     jsonCall
     (
         'get_annotations',
@@ -371,7 +402,7 @@ function ping()
     window.setTimeout(ping, 5000);
 }
 
-function listProjects() {
+function listProjects(switchToFirst) {
 
     var projects_list = document.getElementById('project_list');
     jsonCall
@@ -380,25 +411,42 @@ function listProjects() {
         (function(response)
         {
             projects_list.innerHTML = '';
+            projects = [ ];
             
             if (response.admin_access.length > 0)    projects_list.innerHTML += '<li><b>Admin Access</b></li>';
             for (var i = 0; i < response.admin_access.length; i++)
             {
                 var project = response.admin_access[i];
-                projects.push(project);
+                projects.push({ "name" : project, "level" : "admin" });
+
                 projects_list.innerHTML += '<li onclick="switchProject(\'' + project + '\')">' + project + '</li>';
             }
-            
-            if (response.normal_access.length > 0)   projects_list.innerHTML += '<li><b>Member Access</b></li>';
+
+            var normals = [ ];
             for (var i = 0; i < response.normal_access.length; i++)
             {
                 var project = response.normal_access[i];
-                projects.push(project);
+
+                if (response.admin_access.indexOf(project) == -1)
+                {
+                    normals.push(project);
+                }
+            }
+            
+            if (normals.length > 0)   projects_list.innerHTML += '<li><b>Member Access</b></li>';
+            for (var i = 0; i < normals; i++)
+            {
+                var project = normals[i];
+
+                projects.push({ "name" : project, "level" : "user" });
 
                 projects_list.innerHTML += '<li onclick="switchProject(\'' + project + '\')">' + project + '</li>';
             }
 
-
+            if (switchToFirst)
+            {
+                switchProject(projects[0].name);
+            }
         }),
         displayServerError
         );
@@ -426,13 +474,24 @@ function writeUsername()
         );
 }
 
-function tempView(url){
+function tempView(url)
+{
+    /*
     jsonCall
     (
         'temp view', 'url=' + url,
         (function(){}),
         function(){}
+<<<<<<< HEAD
         );    
+=======
+    ); 
+    */
+
+    document.getElementById('page_holder').src =
+          '/end?command=Temp+View'
+        + '&url=' + encodeURIComponent(url);   
+>>>>>>> 71320c4e245788d68dc21aba4e9ed6da26fc716a
 }
 
 $(document).ready(function()

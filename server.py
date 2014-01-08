@@ -276,8 +276,7 @@ class MainPage(webapp2.RequestHandler):
             try:
                 href = re.match("https?://[^/]*/", url).group() + href[1:]
             except:
-                self.response.write(url)
-                raise
+                return href
         elif not re.match("https?://", href):
             href = url + href
         return href
@@ -315,8 +314,8 @@ class MainPage(webapp2.RequestHandler):
             html = urllib.urlopen(url).read()
             html = html.decode("utf-8")
         except:
-            self.status("Page not found.")
-            return
+            return self.print_js_error("Domain Not Found")
+        
         # Add the page to the database if it does not exist, otherwise get it.
         if not Page.query(Page.url == url, ancestor=key).fetch():
             # Make the page
@@ -367,7 +366,7 @@ class MainPage(webapp2.RequestHandler):
         # Try to get the page. Return if it is not found.
         page = ndb.Key("Project", project_name, "Page", url).get()
         if not page:
-            return self.status("Page not found")
+            return self.print_js_error("Page not found")
         # Grab the latest version of the page.
         latest = Version.query(ancestor=page.key)
         latest = latest.order(-Version.time_added).fetch()
@@ -463,20 +462,24 @@ class MainPage(webapp2.RequestHandler):
             html = re.sub(re.escape(old_url), new_url, html)
         return html
 
+    def print_js_error(self, msg):
+        self.response.write('<script>alert(\'' + msg + '\');</script>');
+        return True
+
     def temp_get(self):
         ''' Grabs a temporary version of the page, ready to save on-demand '''
         # Get some details.
         url = self.request.get('url')
         if not url:
-            return self.status("Url not found")
+            return self.print_js_error("Url not found")
         try:
             html = urllib.urlopen(url).read()
             html = html.decode("utf-8")
-        except:
-            return self.status("Page not found.")
+        except Exception as inst:
+            return self.print_js_error("Domain Not Found")
         user = users.get_current_user()
         if not user:
-            return self.status("You must be logged in to use this command")
+            return self.print_js_error("You must be logged in to use this command")
         # Save the page details
         tp = TempPage.query(TempPage.user == user).fetch()
         if tp == []:
@@ -486,7 +489,6 @@ class MainPage(webapp2.RequestHandler):
             tp[0].temp_url = url
         html = self.replace_links(url, html)
         self.response.write(html)
-        self.status('success')
         return True
 
     def get_temp_page(self):
@@ -739,25 +741,38 @@ class MainPage(webapp2.RequestHandler):
                 return self.status("User not recognised.")
 
         # User access level commands.
-        if self.request.get('command') == "add access":
+        if command == "add access":
             if user_name not in project.members:
                 project.members.append(user_name)
-        if self.request.get('command') == "remove access":
+                project.put()
+            
+            return self.status('success')
+        if command == "remove access":
             if len(project.members) != 1:
                 if user_name in project.members:
                     project.members.remove(user_name)
+                    project.put()
+
+                return self.status("success")
             else:
                 return self.status("Cannot remove final user from project.")
-        if self.request.get('command') == "add admin":
+        if command == "add admin":
             if user_name not in project.admins:
                 project.admins.append(user_name)
-        if self.request.get('command') == "remove admin":
+                project.put()
+            
+            return self.status('success')
+        if command == "remove admin":
             if len(project.admins) != 1:
                 if user_name in project.admins:
                     project.admins.remove(user_name)
+                    project.put()
+
+                return self.status("success")
             else:
                 return self.status("Cannot remove final admin from project.")
-        self.status('success')
+
+        self.status('command not found')
         project.put()
 
     def get(self):
