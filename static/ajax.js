@@ -326,3 +326,12 @@ $(document).ready(function()
 {
     //ping();
 });
+
+function tempView(url){
+    jsonCall
+    (
+        'temp view', 'url=' + encodeURIComponent(currentPage)
+        (function(){}),
+        function(){}
+    );    
+}
