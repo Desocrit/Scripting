@@ -744,25 +744,38 @@ class MainPage(webapp2.RequestHandler):
                 return self.status("User not recognised.")
 
         # User access level commands.
-        if self.request.get('command') == "add access":
+        if command == "add access":
             if user_name not in project.members:
                 project.members.append(user_name)
-        if self.request.get('command') == "remove access":
+                project.put()
+            
+            return self.status('success')
+        if command == "remove access":
             if len(project.members) != 1:
                 if user_name in project.members:
                     project.members.remove(user_name)
+                    project.put()
+
+                return self.status("success")
             else:
                 return self.status("Cannot remove final user from project.")
-        if self.request.get('command') == "add admin":
+        if command == "add admin":
             if user_name not in project.admins:
                 project.admins.append(user_name)
-        if self.request.get('command') == "remove admin":
+                project.put()
+            
+            return self.status('success')
+        if command == "remove admin":
             if len(project.admins) != 1:
                 if user_name in project.admins:
                     project.admins.remove(user_name)
+                    project.put()
+
+                return self.status("success")
             else:
                 return self.status("Cannot remove final admin from project.")
-        self.status('success')
+
+        self.status('command not found')
         project.put()
 
     def get(self):
