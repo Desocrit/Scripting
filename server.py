@@ -226,6 +226,7 @@ class MainPage(webapp2.RequestHandler):
             annotation = {'creator': str(a.creator)}
             annotation['x_pos'] = str(a.x_pos)
             annotation['y_pos'] = str(a.y_pos)
+            annotation['element_id'] = a.element_id
             vkey = ndb.Key(Project, project_name, Page, page.url,
                            Version, ver.v_id, Annotation, a.element_id)
             latest = AnnotationVersion.query(ancestor=vkey)
