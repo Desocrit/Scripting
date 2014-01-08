@@ -186,7 +186,7 @@ function getPage(url)
         ui.type="text/css";
 
         
-                doc.head.appendChild(ui);
+        doc.head.appendChild(ui);
 
         doc.head.appendChild(c);
         doc.head.appendChild(jq);

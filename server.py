@@ -354,7 +354,7 @@ class MainPage(webapp2.RequestHandler):
         # Add a new version at the current time
         vid = Version.query().count()
         version = Version(parent=page.key, id=vid, v_id=vid, creator=user)
-        version.contents = sub(r'(?i)<script.*?</script>{1}?', "", html)
+        version.contents = sub(r'<script(.)*?</script>', "", html, 0, re.DOTALL)
         version.css_ids = [ci for ci in css_ids if ci]
         version.put()
         return self.status('success')
