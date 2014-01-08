@@ -6,7 +6,7 @@ var callback = null;
 var userName;
 var lastResponse;
 var error = [ ];
-var projects;
+var projects = [ ];
 
 /**
  * Should display the main interface (called after successful login)
@@ -358,7 +358,7 @@ function ping()
     //try { saveAnnotations(); } catch (e){}
     try { pingForAnnotations();  } catch (e){}
     try { listPages();  } catch (e){}
-    //try { listProjects();  } catch (e){} // Commented out - SERVER BROKEN
+    try { listProjects();  } catch (e){} // Commented out - SERVER BROKEN
 
     window.setTimeout(ping, 5000);
 }
@@ -368,21 +368,23 @@ function listProjects() {
     var projects_list = document.getElementById('project_list');
     jsonCall
     (
-        'projects', '',
+        'list projects', '',
         (function(response)
         {
             projects_list.innerHTML = '';
-             if (response.admin_access.length > 0)    projects_list.innerHTML += '<li><b>Admin Access</b></li>';
+            
+            if (response.admin_access.length > 0)    projects_list.innerHTML += '<li><b>Admin Access</b></li>';
             for (var i = 0; i < response.admin_access.length; i++)
             {
                 var project = response.admin_access[i];
                 projects.push(project);
                 projects_list.innerHTML += '<li onclick="switchProject(\'' + project + '\')">' + project + '</li>';
             }
-             if (response.user_access.length > 0)   projects_list.innerHTML += '<li><b>Member Access</b></li>';
-            for (var i = 0; i < response.user_access.length; i++)
+            
+            if (response.normal_access.length > 0)   projects_list.innerHTML += '<li><b>Member Access</b></li>';
+            for (var i = 0; i < response.normal_access.length; i++)
             {
-                var project = response.user_access[i];
+                var project = response.normal_access[i];
                 projects.push(project);
 
                 projects_list.innerHTML += '<li onclick="switchProject(\'' + project + '\')">' + project + '</li>';
