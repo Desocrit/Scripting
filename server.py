@@ -540,7 +540,7 @@ class MainPage(webapp2.RequestHandler):
         latest = Version.query(ancestor=key)
         latest = latest.order(-Version.time_added).fetch(1)[0]
         annotation = Annotation.query(Annotation.uniqid == uid,
-            ancestor=latest.key).fetch()
+                                      ancestor=latest.key).fetch()
         user = users.get_current_user()
         if annotation:
             key = annotation[0].key
@@ -551,7 +551,7 @@ class MainPage(webapp2.RequestHandler):
                                     uniqid=uid, parent=key, creator=user,
                                     x_pos=x_pos, y_pos=y_pos)
             annotation.put()
-            key=annotation.key
+            key = annotation.key
         av_id = AnnotationVersion.query().count()
         version = AnnotationVersion(parent=key, id=av_id,
                                     av_id=av_id, contents=str(message))
