@@ -314,8 +314,8 @@ class MainPage(webapp2.RequestHandler):
             html = urllib.urlopen(url).read()
             html = html.decode("utf-8")
         except:
-            self.status("Domain Not Found")
-            return
+            return self.print_js_error("Domain Not Found")
+        
         # Add the page to the database if it does not exist, otherwise get it.
         if not Page.query(Page.url == url, ancestor=key).fetch():
             # Make the page
@@ -366,7 +366,7 @@ class MainPage(webapp2.RequestHandler):
         # Try to get the page. Return if it is not found.
         page = ndb.Key("Project", project_name, "Page", url).get()
         if not page:
-            return self.status("Page not found")
+            return self.print_js_error("Page not found")
         # Grab the latest version of the page.
         latest = Version.query(ancestor=page.key)
         latest = latest.order(-Version.time_added).fetch()
@@ -462,20 +462,24 @@ class MainPage(webapp2.RequestHandler):
             html = re.sub(re.escape(old_url), new_url, html)
         return html
 
+    def print_js_error(self, msg):
+        self.response.write('<script>alert(\'' + msg + '\');</script>');
+        return True
+
     def temp_get(self):
         ''' Grabs a temporary version of the page, ready to save on-demand '''
         # Get some details.
         url = self.request.get('url')
         if not url:
-            return self.status("Url not found")
+            return self.print_js_error("Url not found")
         try:
             html = urllib.urlopen(url).read()
             html = html.decode("utf-8")
         except Exception as inst:
-            return self.status(inst)
+            return self.print_js_error("Domain Not Found")
         user = users.get_current_user()
         if not user:
-            return self.status("You must be logged in to use this command")
+            return self.print_js_error("You must be logged in to use this command")
         # Save the page details
         tp = TempPage.query(TempPage.user == user).fetch()
         if tp == []:
