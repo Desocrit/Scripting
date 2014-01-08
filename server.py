@@ -87,6 +87,7 @@ class Annotation(ndb.Model):
     element_id = ndb.StringProperty()
     x_pos = ndb.IntegerProperty()
     y_pos = ndb.IntegerProperty()
+    uniqid = ndb.IntegerProperty()
 
 
 class Version(ndb.Model):
@@ -233,6 +234,7 @@ class MainPage(webapp2.RequestHandler):
             annotation['x_pos'] = str(a.x_pos)
             annotation['y_pos'] = str(a.y_pos)
             annotation['element_id'] = a.element_id
+            annotation['uniqid'] = a.uniqid
             vkey = ndb.Key(Project, project_name, Page, page.url,
                            Version, ver.v_id, Annotation, a.element_id)
             latest = AnnotationVersion.query(ancestor=vkey)
@@ -501,13 +503,16 @@ class MainPage(webapp2.RequestHandler):
 
     def annotate(self):
         ''' Annotates a position in the page. Updates existing annotation
-            if the annotation already exists. '''
+        if the annotation already exists. '''
         message = self.request.get('message')
         element_id = self.request.get('element_id')
         x_pos, y_pos = self.request.get('x_pos'), self.request.get('y_pos')
+        uniqid = self.request.get("uniqid")
         try:
             x_pos = int(x_pos)
             y_pos = int(y_pos)
+            if uniqid:
+                uniqid = int(uniqid)
         except:
             return self.status("Arguments cannot be converted to integers.")
         if not x_pos or not y_pos or not message or not element_id:
@@ -520,18 +525,25 @@ class MainPage(webapp2.RequestHandler):
             return self.status("Page not found")
         latest = Version.query(ancestor=key)
         latest = latest.order(-Version.time_added).fetch(1)[0]
-        annotation = Annotation.query(
-            Annotation.x_pos == x_pos,
-            Annotation.y_pos == y_pos,
-            ancestor=latest.key
-        ).fetch()
-        if not annotation:
+        
+        if uniqid:
+            # Fetch and update annotation
+            annotation = Annotation.query(
+                Annotation.uniqid == uniqid,
+                ancestor=latest.key
+            ).fetch()
+            annotation.x_pos = x_pos
+            annotation.y_pos = y_pos
+            annotation.put()
+        if not uniqid or not annotation:
             # Create and attach an annotation.
             user = users.get_current_user()
             key = latest.key
+            uniqid = Annotation.query().count()
             annotation = Annotation(id=element_id, element_id=element_id,
                                     parent=key, creator=user,
-                                    x_pos=x_pos, y_pos=y_pos)
+                                    x_pos=x_pos, y_pos=y_pos,
+                                    uniqid=uniqid)
             annotation.put()
         if isinstance(annotation, list):
             key = annotation[0].key
@@ -544,6 +556,8 @@ class MainPage(webapp2.RequestHandler):
         version.creator = users.get_current_user()
         version.put()
         self.status('success')
+
+
 
     # HTML Viewing methods
 
