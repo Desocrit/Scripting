@@ -56,5 +56,11 @@ $( document ).ready(function() {
 		$(this).children('ul').fadeOut();
 	});
 
+	$(".annotation_corner").on("click", function(event) {
+		/* Act on the event */
+	});
+
+
+
 
 });

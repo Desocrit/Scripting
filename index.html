@@ -2,11 +2,14 @@
 <html>
 <head>
 	<script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+
+	<script type="text/javascript" src="http://code.jquery.com/ui/1.10.3/jquery-ui.js"></script>
 	<title>COMP3001 Scripting Languages Group Project - Team F</title>
 	<link rel="stylesheet" href="static/style.css" type="text/css">
 	<script type="text/javascript" src="static/libaries/raphael.min.js"></script>
 	<script type="text/javascript" src="static/libaries/json2.min.js"></script>
 	<script type="text/javascript" src="static/libaries/raphael.sketchpad.js"></script>
+
 	<script src="static/ajax.js"></script>
 	<script src="static/ui.js"></script>
 	<script type="text/javascript">
@@ -39,17 +42,17 @@
 				<h2 id="main_title" class="inline">powered by <span class="emphasise">Collaborowse</span></h2>
 				<!-- Project- and system-specific menu items -->
 				<ul id="menu" class="menu">
-					<li onclick="switchProject();">Switch Project
+					<li>Switch Project
 					<!-- nested menu (one level) demo below -->
 						<ul>
-							<li>project 1</li>
-							<li>project 2</li>
+							<li onclick="switchProject('testing')">testing</li>
+							<li onclick="switchProject('default_project')">default_project</li>
 						</ul>
 					</li>
 
 					<li onclick="createProject();">Create Project
 					</li>
-					<li onclick-"deleteProject();">Delete Project
+					<li onclick="deleteProject();">Delete Project
 					</li>
 					<li id="navbutton" class="menuitem">Hide Sidebar
 					</li>
@@ -73,7 +76,7 @@
 		</ul>
 		
 	</div>
-		<iframe id="page_holder" seamless src="/end?url=http%3A%2F%2Fwww.google.co.uk&project_name=default_project&command=View+Page"></iframe>
+		<iframe id="page_holder" seamless src="index.html"></iframe>
 
 		<span id="backbutton" onclick="window.frames.history.back(-1);">BACK</span>
 		<div id="toolbar"></div>	

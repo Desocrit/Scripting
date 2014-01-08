@@ -1,0 +1,39 @@
+.annotation_text, .context_menu {
+		display: block;
+        position: absolute;
+        color: rgba(255,255,255,0.9);
+       	background: -moz-linear-gradient(top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.75) 41%, rgba(0,0,0,0.75) 77%, rgba(0,0,0,0.8) 100%); /* FF3.6+ */
+		background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,rgba(0,0,0,0.8)), color-stop(41%,rgba(0,0,0,0.75)), color-stop(77%,rgba(0,0,0,0.75)), color-stop(100%,rgba(0,0,0,0.8))); /* Chrome,Safari4+ */
+		background: -webkit-linear-gradient(top, rgba(0,0,0,0.8) 0%,rgba(0,0,0,0.75) 41%,rgba(0,0,0,0.75) 77%,rgba(0,0,0,0.8) 100%); /* Chrome10+,Safari5.1+ */
+		background: -o-linear-gradient(top, rgba(0,0,0,0.8) 0%,rgba(0,0,0,0.75) 41%,rgba(0,0,0,0.75) 77%,rgba(0,0,0,0.8) 100%); /* Opera 11.10+ */
+		background: -ms-linear-gradient(top, rgba(0,0,0,0.8) 0%,rgba(0,0,0,0.75) 41%,rgba(0,0,0,0.75) 77%,rgba(0,0,0,0.8) 100%); /* IE10+ */
+		background: linear-gradient(to bottom, rgba(0,0,0,0.8) 0%,rgba(0,0,0,0.75) 41%,rgba(0,0,0,0.75) 77%,rgba(0,0,0,0.8) 100%); /* W3C */
+		filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#cc000000', endColorstr='#cc000000',GradientType=0 ); /* IE6-9 */
+        border: 1px solid rgba(0,0,0,0,1);
+        -moz-box-sizing:    border-box;
+	   	-webkit-box-sizing: border-box;
+	    box-sizing:        border-box;
+		text-align: left;
+		padding: 1em;
+		 -webkit-border-radius: 5px;
+	    -moz-border-radius: 5px;
+	    border-radius: 5px;
+	    z-index: 15;
+    }
+
+.annotation_text:hover {
+	color: rgba(255, 255, 200, 0.9);
+}
+
+.annotation_corner {
+	position: absolute;
+	background: #fff;
+	right: 0;
+	bottom: 0;
+	width: 5px;
+	height: 5px;
+}
+
+.annotation_text {
+	width: 300px;
+}
