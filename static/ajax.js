@@ -263,7 +263,7 @@ function writeUsername()
         'get_user', null,
         (function(response)
         {
-            nameText.innerHTML = response.usn;
+            nameText.innerHTML = response.username;
         }
         }),
         function(){}
