@@ -106,7 +106,6 @@ class Page(ndb.Model):
     creator = ndb.UserProperty()
     url = ndb.StringProperty()
     created = ndb.DateTimeProperty(auto_now_add=True)
-    # Todo: Images
 
 
 class CSS(ndb.Model):
@@ -422,6 +421,8 @@ class MainPage(webapp2.RequestHandler):
             annotation.key.delete()
         for css_id in version.get().css_ids:
             css = ndb.Key(CSS, css_id)
+            if not css.get():
+                continue
             css.get().pages_using -= 1
             if css.get().pages_using == 0:
                 css.delete()
