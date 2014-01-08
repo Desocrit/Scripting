@@ -6,12 +6,12 @@
 
     window.oncontextmenu = (function(_e)
     {
-        if (_e.toElement.isAnnotation) return false;
+        if (_e.target.isAnnotation) return false;
 
         menu.style.display = 'block';
         menu.style.left    = _e.layerX + 'px';
         menu.style.top     = _e.layerY + 'px';
-        currentElement     = _e.toElement.id;
+        currentElement     = _e.target.id;
         e                  = _e;
 
         return false;
@@ -21,14 +21,11 @@
     {
         var annotation = document.createElement('div');
 
-        annotation.class = 'annotation_text'
-        annotation.style.display    = 'block';
-        annotation.style.width      = '300px';
-        annotation.style.position   = 'absolute';
+        annotation.className = 'annotation_text';
+      
         annotation.style.left       = x + 'px';
         annotation.style.top        = y + 'px';
-        annotation.style.background = 'rgb(255, 255, 150)';
-        annotation.style.border     = '1px solid black';
+    
         annotation.innerText        = text;
         annotation.contentEditable  = true;
         annotation.subjectElement   = document.getElementById(el);
@@ -37,6 +34,15 @@
         menu.style.display = 'none';
         document.body.appendChild(annotation);
         window.parent.annotations.push(annotation);
+        $(".annotation_text").draggable()
+          .click(function() {
+            $(this).draggable( {disabled: false});
+        }).dblclick(function() {
+            $(this).draggable({ disabled: true });
+        }).resizable();
+        $(".annotation_text").on("mouseout", function() {
+            $(this).draggable( {disabled: false});
+        })
     });
 
     var addAnnotation = (function()
@@ -52,8 +58,7 @@
         var a       = document.createElement('a');
         a.onclick   = addAnnotation;
         a.innerText = 'Add Annotation';
-        a.style.display = 'block';
-        a.style.background = 'red';
+        a.className = 'context_menu';
         menu.appendChild(a);
 
     document.body.appendChild(menu);

@@ -136,8 +136,38 @@ function getPage(url)
         var doc = frame.contentWindow.document;
         var s   = doc.createElement('script');
         s.src = '/static/inject.js';
+
+        var jq  = doc.createElement('script');
+        jq.src = 'http://code.jquery.com/jquery-1.10.1.min.js';
+        jq.async = false;
+
+        var jui  = doc.createElement('script');
+        jui.src = 'http://code.jquery.com/ui/1.10.3/jquery-ui.js';
+        jui.async = false;
+
+        var c = doc.createElement('link');
+        c.rel="stylesheet" ;
+        c.href="/static/inject.css" ;
+        c.type="text/css";
+
+        var ui = doc.createElement('link');
+        ui.rel="stylesheet" ;
+        ui.href="http://code.jquery.com/ui/1.10.3/themes/smoothness/jquery-ui.css" ;
+        ui.type="text/css";
+
+        
+                doc.head.appendChild(ui);
+
+        doc.head.appendChild(c);
+        doc.head.appendChild(jq);
+        doc.head.appendChild(jui);
+
         doc.head.appendChild(s);
+
+        
     });
+
+    listPages();
 }
 
 function createProject(){
@@ -145,18 +175,24 @@ function createProject(){
     if(newName){
         project = newName;
         jsonCall("Create+Project",null,displayCreatePage, displayServerError);
-        jsonCall("Switch+Project",null,function(){},displayServerError);
     } else {
         alert('Project name required.');
     }
 }
 
-function switchProject(){
-    
+function switchProject(project_name){
+    project = project_name;
+    listPages();
 }
 
 function deleteProject(){
-    
+    var project_name = project;
+    var confirm_delete = confirm("Are you sure you want to delete project " + project_name + "?");
+    if(confirm_delete) {
+        switchProject(project_name);
+        jsonCall("Delete+Project",null,displayCreatePage, displayServerError);
+        switchProject("default_project");
+    }
 }
 
 function buttonAddPage()
@@ -245,4 +281,26 @@ function ping()
 function setCallback(cb)
 {
     callback = cb;
+}
+
+//function isLoggedIn()
+//{
+	//jsonCall('get user', null, function(){return true;}, function(){return false;});
+//}
+
+function writeUsername()
+{
+    var nameText = document.getElementById('usn');
+    nameText.innerHTML = '';
+
+    jsonCall
+    (
+        'get user', null,
+        (function(response)
+        {
+            nameText.innerHTML = response.username;
+        }
+        }),
+        function(){}
+    );
 }
