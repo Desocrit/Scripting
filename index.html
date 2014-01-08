@@ -90,6 +90,11 @@
 		</div>
 	</footer>
 	<script text="text/javascript">
+		function isLoggedIn()
+		{
+			//return jsonCall('get user', null, function(){return true;}, function(){return false;});
+			return true;
+		}
 		if(isLoggedIn())
 		{
 			$("#front_page").animate({opacity: 0.0}).css({top: "-120%"}, 500);

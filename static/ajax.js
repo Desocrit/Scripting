@@ -247,11 +247,10 @@ function setCallback(cb)
     callback = cb;
 }
 
-function isLoggedIn()
-{
-	jsonCall('get user', null, function(){return true;}, function(){return false;});
-	//return false;
-}
+//function isLoggedIn()
+//{
+	//jsonCall('get user', null, function(){return true;}, function(){return false;});
+//}
 
 function writeUsername()
 {
