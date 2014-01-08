@@ -19,19 +19,14 @@ function displayLoginError() {}
  */
 function displayServerError(xmlhttp)
 {
-    alert('Server be broken');
 }
 
 function displayAddPage()
 {
-    // Need to update pages list
-    alert('Page added!');
 }
 
 function displayCreatePage()
 {
-    // Need to update pages list
-    alert('Project created!');
 }
 
 /**
@@ -39,12 +34,10 @@ function displayCreatePage()
  */
 function displayTimeoutError()
 {
-    alert('Server be broken (timeout)');
 }
 
 function displayPageNotFound()
 {
-    alert('Page not found');
 }
 
 
@@ -295,10 +288,11 @@ function pingForAnnotations()
 
 function ping()
 {
-    saveAnnotations();
-    pingForAnnotations();
-    listPages();
-    listProjects();
+
+    try { saveAnnotations(); } catch (e){}
+    try { pingForAnnotations();  } catch (e){}
+    try { listPages();  } catch (e){}
+    try { listProjects();  } catch (e){}
 
     window.setTimeout(ping, 5000);
 }
