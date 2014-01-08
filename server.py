@@ -72,22 +72,15 @@ class TempPage(ndb.Model):
     temp_url = ndb.StringProperty()
 
 
-class AnnotationVersion(ndb.Model):
-    ''' A version of an annotation.
-        This can be checked and updated in realtime. '''
-    time_added = ndb.DateTimeProperty(auto_now_add=True)
-    creator = admins = ndb.UserProperty()
-    av_id = ndb.IntegerProperty()
-    contents = ndb.StringProperty(indexed=False)
-
-
 class Annotation(ndb.Model):
-    ''' An annotation. Contents are stored as AnnotationVersions '''
+    ''' An annotation. Contents are stored as String '''
+    time_added = ndb.DateTimeProperty(auto_now_add=True)
     creator = ndb.UserProperty()
     element_id = ndb.StringProperty()
     x_pos = ndb.IntegerProperty()
     y_pos = ndb.IntegerProperty()
     uniqid = ndb.StringProperty()
+    contents = ndb.StringProperty(indexed=False)
 
 
 class Version(ndb.Model):
@@ -202,12 +195,7 @@ class MainPage(webapp2.RequestHandler):
                 annotation['uniqid'] = str(a.uniqid)
                 annotation['x_pos'] = str(a.x_pos)
                 annotation['y_pos'] = str(a.y_pos)
-                vkey = ndb.Key(Project, project_name, Page, page.url,
-                               Version, v.v_id, Annotation, a.uniqid)
-                latest = AnnotationVersion.query(ancestor=vkey)
-                latest = latest.order(-AnnotationVersion.time_added)
-                latest = latest.fetch(1)[0]
-                annotation['contents'] = latest.contents
+                annotation['contents'] = str(a.contents)
                 annotations.append(annotation)
             version['annotations'] = annotations
             versions.append(version)
@@ -234,7 +222,6 @@ class MainPage(webapp2.RequestHandler):
         if self.output_type.lower() != 'json':
             self.response.write("Feature unavailable")
             return False
-        project_name = self.request.get('project_name', DEFAULT_PROJECT_NAME)
         url = self.request.get('url')
         if not url:
             self.status("Url not provided")
@@ -251,12 +238,7 @@ class MainPage(webapp2.RequestHandler):
             annotation['y_pos'] = str(a.y_pos)
             annotation['element_id'] = a.element_id
             annotation['uniqid'] = a.uniqid
-            vkey = ndb.Key(Project, project_name, Page, page.url,
-                           Version, ver.v_id, Annotation, a.uniqid)
-            latest = AnnotationVersion.query(ancestor=vkey)
-            latest = latest.order(-AnnotationVersion.time_added)
-            latest = latest.fetch(1)[0]
-            annotation['contents'] = latest.contents
+            annotation['contents'] = a.contents
             annotations.append(annotation)
         self.json['annotations'] = annotations
         self.status('success')
@@ -331,6 +313,7 @@ class MainPage(webapp2.RequestHandler):
         # Try to grab the page. Return on any exception
         try:
             html = urllib.urlopen(url).read()
+            html = html.decode("utf-8")
         except:
             self.status("Page not found.")
             return
@@ -416,8 +399,6 @@ class MainPage(webapp2.RequestHandler):
 
     def delete_version(self, version):
         for annotation in Annotation.query(ancestor=version).fetch():
-            for av in AnnotationVersion.query(ancestor=annotation.key).fetch():
-                av.key.delete()
             annotation.key.delete()
         for css_id in version.get().css_ids:
             css = ndb.Key(CSS, css_id)
@@ -554,21 +535,19 @@ class MainPage(webapp2.RequestHandler):
         annotation = Annotation.query(Annotation.uniqid == uid,
                                       ancestor=latest.key).fetch()
         user = users.get_current_user()
-        if annotation:
-            key = annotation[0].key
-        else:
+        if not annotation:
             # Create and attach an annotation.
             key = latest.key
             annotation = Annotation(id=uid, element_id=element_id,
                                     uniqid=uid, parent=key, creator=user,
                                     x_pos=x_pos, y_pos=y_pos)
+            annotation.contents = str(message)
             annotation.put()
-            key = annotation.key
-        av_id = AnnotationVersion.query().count()
-        version = AnnotationVersion(parent=key, id=av_id,
-                                    av_id=av_id, contents=str(message))
-        version.creator = user
-        version.put()
+        else:
+            annotation[0].contents = str(message)
+            annotation[0].x_pos = x_pos
+            annotation[0].y_pos = y_pos
+            annotation[0].put()
         self.status('success')
 
     # HTML Viewing methods
