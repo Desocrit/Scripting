@@ -4,6 +4,9 @@ var project = 'default_project';
 var annotations = { };
 var callback;
 var userName;
+var lastResponse;
+var error = [ ];
+
 /**
  * Should display the main interface (called after successful login)
  */
@@ -40,6 +43,12 @@ function displayPageNotFound()
 {
 }
 
+function err(msg, command, raw)
+{
+    console.log(msg + '. Command: ' + command + '. See error[' + error.length + ']');
+    error.push(raw);   
+}
+
 
 function apiCall(command, vars, callback)
 {
@@ -53,7 +62,14 @@ function apiCall(command, vars, callback)
         {
             if (xmlhttp.status == 200)
             {
-                callback(xmlhttp.responseText);
+                try
+                {
+                    callback(xmlhttp.responseText);
+                }
+                catch (e)
+                {
+                    err('Failed', command, lastResponse);
+                }
             }
             else
             {
@@ -81,23 +97,22 @@ function jsonCall(command, vars, success, fail)
         vars,
         (function(text)
         {
-            var response;
             try
             {
-                response = JSON.parse(text);
+                lastResponse = JSON.parse(text);
             }
             catch (e)
             {
-                displayServerError();
+                err('Not JSON', command, lastResponse);
             }
             
-            if (response.status == 'success')
+            if (lastResponse.status == 'success')
             {
-                success(response);
+                success(lastResponse);
             }
             else
             {
-                fail(response);
+                fail(lastResponse);
             }
         })
     );
