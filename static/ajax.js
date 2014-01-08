@@ -297,6 +297,7 @@ function ping()
     saveAnnotations();
     pingForAnnotations();
     listPages();
+    listProjects();
 
     window.setTimeout(ping, 5000);
 }
@@ -311,11 +312,19 @@ function listProjects() {
         (function(response)
         {
             projects.innerHTML = '';
-            for (var i = 0; i < response.normal_access.length; i++)
+             if (response.admin_access.length > 0)    projects.innerHTML += '<li><b>Admin Access</b></li>';
+            for (var i = 0; i < response.admin_access.length; i++)
             {
-                var project = response.normal_access[i];
+                var project = response.admin_access[i];
 
-                links.innerHTML += '<li onclick="switchProject(\'' + project + '\')">' + project + '</li>';
+                projects.innerHTML += '<li onclick="switchProject(\'' + project + '\')">' + project + '</li>';
+            }
+             if (response.user_access.length > 0)   projects.innerHTML += '<li><b>Member Access</b></li>';
+            for (var i = 0; i < response.user_access.length; i++)
+            {
+                var project = response.user_access[i];
+
+                projects.innerHTML += '<li onclick="switchProject(\'' + project + '\')">' + project + '</li>';
             }
 
 
