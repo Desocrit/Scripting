@@ -252,3 +252,20 @@ function isLoggedIn()
 	jsonCall('get_user', null, function(){return true;}, function(){return false;});
 	//return false;
 }
+
+function writeUsername()
+{
+    var nameText = document.getElementById('usn');
+    nameText.innerHTML = '';
+
+    jsonCall
+    (
+        'get_user', null,
+        (function(response)
+        {
+            nameText.innerHTML = response.usn;
+        }
+        }),
+        function(){}
+    );
+}
