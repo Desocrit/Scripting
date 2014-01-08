@@ -538,7 +538,8 @@ class MainPage(webapp2.RequestHandler):
         redirect = self.request.get('redirect_url')
         user = users.get_current_user()
         if not redirect:
-            redirect = self.request.url.split("/")[0]
+            #redirect = self.request.url.split("/")[0] #doesn't work, returns http:
+            redirect = self.request.url.path
             if self.request.get('project_name'):
                 redirect += self.request.get('project_name')
         if () == 'logout':
