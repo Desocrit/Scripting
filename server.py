@@ -444,17 +444,23 @@ class MainPage(webapp2.RequestHandler):
             self.json['pages'] = [page.url for page in pages]
             return self.status('success')
 
+    def link_href(self, url, ext):
+        result = re.match("https?://[^/]*/", self.request.url).group()
+        result += 'end?command=temp_view&url='
+        return result + cgi.escape(self.complete_href(url, ext))
+
     def replace_links(self, url, html):
         ''' Replaces all links in the html with 'temp page' links '''
-        base_url = re.search("<.*base href.*=.*", html)
+        base_url = re.search("<.*base href.*=.*", html, re.DOTALL)
         if base_url:
             url = self.get_href(base_url.group())
-        urls = re.findall('(<a.*?href\s*=\s*")(.*?)"', html)
+        urls = re.findall('(<a.*?href\s*=\s*")(.*?)"', html, re.DOTALL)
         changed_urls = [self.link_href(url, ext[1]) for ext in urls]
         for i in range(len(urls)):
             old_url = urls[i][0] + urls[i][1]
             new_url = urls[i][0] + changed_urls[i]
-            html = re.sub(old_url, new_url, html)
+            
+            html = re.sub(re.escape(old_url), new_url, html)
         return html
 
     def temp_get(self):
