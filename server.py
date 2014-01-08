@@ -652,7 +652,7 @@ class MainPage(webapp2.RequestHandler):
         if command == 'temp view':
             return self.temp_get()
         if command == 'grab temp page':
-            return self.grab_temp_page()
+            return self.get_temp_page()
         
         # Project Selection Commands
         user = users.get_current_user()
