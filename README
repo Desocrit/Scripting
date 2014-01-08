@@ -1,5 +1,4 @@
-Simple 'get' server. Responses are currently in API form. 
-Later forks will simply return success or failure mesages.
+Simple 'get' server. Responses are in either json or html
 
 To use, simply 'get' with any of the following options:
 
@@ -11,6 +10,12 @@ project's main page.
 command=logout&redirect_url=whatever
 Logs out if logged in
 Same redirect as above.
+
+command=temp view&url=something
+Gets the url requested for temporary viewing only.
+
+command=grab temp page
+Gets the most recently 'temp view'ed page, and adds to the project.
 
 command=smart_login&redirect_url=whatever
 Logs out if logged in. Logs in if logged out. See above for redirect.
