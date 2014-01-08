@@ -21,6 +21,7 @@
     {
         var annotation = document.createElement('div');
 
+        annotation.class = 'annotation_text'
         annotation.style.display    = 'block';
         annotation.style.width      = '300px';
         annotation.style.position   = 'absolute';

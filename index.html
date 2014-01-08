@@ -4,6 +4,9 @@
 	<script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
 	<title>COMP3001 Scripting Languages Group Project - Team F</title>
 	<link rel="stylesheet" href="static/style.css" type="text/css">
+	<script type="text/javascript" src="static/libaries/raphael.min.js"></script>
+	<script type="text/javascript" src="static/libaries/json2.min.js"></script>
+	<script type="text/javascript" src="static/libaries/raphael.sketchpad.js"></script>
 	<script src="static/ajax.js"></script>
 	<script src="static/ui.js"></script>
 	<script type="text/javascript">
@@ -21,25 +24,29 @@
 			document.getElementById("navbutton").innerHTML = "show navbar";
 		}
 	} 
-	</script>
-	<script text="text/javascript">
+
+	function loggedOn() {
+			listPages();
+	}
+
+
 	</script>
 </head>	
 <body>
 	<div id="front_page">
 		<div id="login_box"><h2 class="title">welcome to <span class="emphasise">Collaborowse</span></h2>
 			<p id="please_login">Please login to get started!</p>
-		<div id="login_button">Login</div>
+		<div id="login_button" onclick="loggedOn()">Login</div>
 		</div>
 	</div>
 	<header>
 		<div id="header_main">
 			<div id="project_menu">
-				<h2 id="main_title" class="inline">powered by <span class="emphasise">Social Browser</span></h2>
+				<h2 id="main_title" class="inline">powered by <span class="emphasise">Collaborowse</span></h2>
 				<!-- Project- and system-specific menu items -->
 				<ul id="menu" class="menu">
 					<li onclick="switchProject();">Switch Project
-					
+					<!-- nested menu (one level) demo below -->
 						<ul>
 							<li>project 1</li>
 							<li>project 2</li>
@@ -70,7 +77,7 @@
 		<h1>Bookmarks</h1>
 		<ul id="links">
 		</ul>
-		<script type="text/javascript">listPages();</script>
+		
 	</div>
 		<iframe id="page_holder" seamless src="/end?url=http%3A%2F%2Fwww.google.co.uk&project_name=default_project&command=View+Page"></iframe>
 

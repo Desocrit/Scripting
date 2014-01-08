@@ -54,6 +54,13 @@ body, html {
 	    overflow:hidden;
 }
 
+a, a:link, a:hover, a:active, a:visited {
+ font-family: "OpenSans-Regular";
+	font-size: 12px;
+	color: #1F5469; 
+}
+
+
 li, p, span {
 	font-family: "OpenSans-Regular";
 	font-size: 12px;
@@ -288,8 +295,7 @@ border-bottom-left-radius: 15px;
 	-moz-box-sizing:    border-box;
    	-webkit-box-sizing: border-box;
     box-sizing:        border-box;
-    	color: #3d3d3d;
-
+    color: #3d3d3d;
 }
 
 #backbutton:hover {
@@ -301,9 +307,8 @@ border-bottom-left-radius: 15px;
 #sidebar
 {
 	background-image: moz-linear-gradient(bottom, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 0) 40%, rgba(255, 255, 255, 0) 60%, rgba(255, 255, 255, 1) 100%), moz-linear-gradient(to right, rgb(255, 255, 255) 0%, rgba(212, 212, 212, 0) 100%) , url("images/hexellence.png");
-background-image: -webkit-linear-gradient(bottom, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 0) 40%, rgba(255, 255, 255, 0) 60%, rgba(255, 255, 255, 1) 100%), linear-gradient(to right, rgb(255, 255, 255) 0%, rgba(212, 212, 212, 0) 100%) , url("images/hexellence.png");
-
-background-image: linear-gradient(to bottom, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 0) 40%, rgba(255, 255, 255, 0) 60%, rgba(255, 255, 255, 1) 100%), linear-gradient(to right, rgb(255, 255, 255) 0%, rgba(212, 212, 212, 0) 100%) , url("images/hexellence.png");
+	background-image: -webkit-linear-gradient(bottom, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 0) 40%, rgba(255, 255, 255, 0) 60%, rgba(255, 255, 255, 1) 100%), linear-gradient(to right, rgb(255, 255, 255) 0%, rgba(212, 212, 212, 0) 100%) , url("images/hexellence.png");
+	background-image: linear-gradient(to bottom, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 0) 40%, rgba(255, 255, 255, 0) 60%, rgba(255, 255, 255, 1) 100%), linear-gradient(to right, rgb(255, 255, 255) 0%, rgba(212, 212, 212, 0) 100%) , url("images/hexellence.png");
 	-moz-box-sizing:    border-box;
    	-webkit-box-sizing: border-box;
     box-sizing:        border-box;
@@ -319,7 +324,6 @@ background-image: linear-gradient(to bottom, rgba(255, 255, 255, 1) 0%, rgba(255
 	font-weight: bold;
 	text-transform: capitalize;
 	padding: 0.1em 0em;
-	
 	color: #00222F;
 	border-top: 1px solid #bcbcbc;
 	width: 85%;
@@ -336,9 +340,8 @@ background-image: linear-gradient(to bottom, rgba(255, 255, 255, 1) 0%, rgba(255
 	cursor: pointer;
 	padding: 3px 8px;
 	list-style: none;
-			border-bottom: 1px solid rgba(0,0,0,0);
-			word-wrap:break-word;
-
+	border-bottom: 1px solid rgba(0,0,0,0);
+	word-wrap:break-word;
 }
 
 #sidebar li:hover {
@@ -363,7 +366,7 @@ background-image: linear-gradient(to bottom, rgba(255, 255, 255, 1) 0%, rgba(255
 #menu2{
 	position: relative;
 	top:20px;
-	width:80%;
+	width:40%;
 	margin: auto;
 }
 

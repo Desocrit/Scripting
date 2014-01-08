@@ -74,8 +74,7 @@ function apiCall(command, vars, callback)
         + '&'              + vars
         + '&command='      + command
         + '&output_type=json';
-
-    xmlhttp.timeout   = 3000;
+    xmlhttp.timeout   = 6000;
     xmlhttp.ontimeout = displayTimeoutError;
     xmlhttp.open('GET', req, true);
     xmlhttp.send();
@@ -90,7 +89,6 @@ function jsonCall(command, vars, success, fail)
         (function(text)
         {
             var response;
-
             try
             {
                 response = JSON.parse(text);
@@ -131,6 +129,7 @@ function getPage(url)
         + '&project_name=' + project;
 
     currentPage = url;
+    document.getElementById('search').value = url;
 
     frame.onload = (function()
     {
@@ -180,14 +179,14 @@ function listPages()
 
     jsonCall
     (
-        'page_links', '',
+        '', '',
         (function(response)
         {
             for (var i = 0; i < response.pages.length; i++)
             {
                 var url = response.pages[i].url;
 
-                links.innerHTML += '<li><a href="' + url + '">' + url + '</a></li>';
+                links.innerHTML += '<li onclick="getPage(\'' + url + '\')">' + url + '</li>';
             }
         }),
         displayServerError
