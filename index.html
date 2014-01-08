@@ -30,7 +30,7 @@
 	<div id="front_page">
 		<div id="login_box"><h2 class="title">welcome to <span class="emphasise">Collaborowse</span></h2>
 			<p id="please_login">Please login to get started!</p>
-		<a href="/login"><div id="login_button">Login</div></a>
+		<a href="/end?command=login"><div id="login_button">Login</div></a>
 		</div>
 	</div>
 	<header>
@@ -58,7 +58,7 @@
 			<div id="userMenu">
 				<h2 id="user_name" class="inline">user name <span class="emphasise"> Alex</span></h2>
 				<ul class="menu">
-					<a href="/login"><li id="logout_button">Logout</li></a>
+					<a href="/end?command=logout"><li id="logout_button">Logout</li></a>
 				</ul>
 			</div>
 			<input type="text" id="search" onkeydown="if (event.keyCode == 13) getPage(document.getElementById('search').value);"></input>
