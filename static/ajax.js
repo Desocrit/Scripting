@@ -348,7 +348,7 @@ function writeUsername()
 function tempView(url){
     jsonCall
     (
-        'temp view', 'url=' + encodeURIComponent(currentPage)
+        'temp view', 'url=' + url,
         (function(){}),
         function(){}
     );    
