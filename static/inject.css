@@ -1,5 +1,6 @@
 .annotation_wrap, .context_menu {
 		display: block;
+		overflow: hidden;
         position: absolute;
         color: rgba(255,255,255,0.9);
        	background: -moz-linear-gradient(top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.75) 41%, rgba(0,0,0,0.75) 77%, rgba(0,0,0,0.8) 100%); /* FF3.6+ */
@@ -21,6 +22,33 @@
 	    z-index: 15;
     }
 
+.close {
+	position: absolute;
+	width:8px;
+	height: 8px;
+	top: 1px;
+	right: 1px;
+	 -webkit-border-radius: 6px;
+    -moz-border-radius: 6px;
+    border-radius: 6px;
+    background: #fff;
+    padding: 2px;
+    font-size: 10px;
+    color: #000;
+}
+
+.close:hover {
+	background-color:  #a2a2a2;
+}
+.closeX {
+	position: absolute;
+width: 8px;
+margin: auto;
+top: 0px;
+right: 1px;
+}
+
+
 .annotation_wrap:hover {
 	color: rgba(255, 255, 200, 0.9);
 }
@@ -40,4 +68,15 @@
 }
 
 .annotation_text {
+}
+
+.inverseColors {
+
+	 	background: -moz-linear-gradient(top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.75) 41%, rgba(0,0,0,0.75) 77%, rgba(0,0,0,0.8) 100%); /* FF3.6+ */
+		background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,rgba(0,0,0,0.8)), color-stop(41%,rgba(0,0,0,0.75)), color-stop(77%,rgba(0,0,0,0.75)), color-stop(100%,rgba(0,0,0,0.8))); /* Chrome,Safari4+ */
+		background: -webkit-linear-gradient(top, rgba(0,0,0,0.8) 0%,rgba(0,0,0,0.75) 41%,rgba(0,0,0,0.75) 77%,rgba(0,0,0,0.8) 100%); /* Chrome10+,Safari5.1+ */
+		background: -o-linear-gradient(top, rgba(0,0,0,0.8) 0%,rgba(0,0,0,0.75) 41%,rgba(0,0,0,0.75) 77%,rgba(0,0,0,0.8) 100%); /* Opera 11.10+ */
+		background: -ms-linear-gradient(top, rgba(0,0,0,0.8) 0%,rgba(0,0,0,0.75) 41%,rgba(0,0,0,0.75) 77%,rgba(0,0,0,0.8) 100%); /* IE10+ */
+		background: linear-gradient(to bottom, rgba(0,0,0,0.8) 0%,rgba(0,0,0,0.75) 41%,rgba(0,0,0,0.75) 77%,rgba(0,0,0,0.8) 100%); /* W3C */
+	
 }
