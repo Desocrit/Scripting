@@ -186,7 +186,7 @@ function switchProject(project_name)
 {
     project = project_name;
     document.getElementById('project_name_el').innerHTML = project_name;
-    listPages();
+    listPages(true);
 
     for (var i in projects)
     {
@@ -283,7 +283,7 @@ function addUser()
     }
 }
 
-function listPages()
+function listPages(switchToFirst)
 {
     var links = document.getElementById('links');
 
@@ -294,6 +294,11 @@ function listPages()
         {
             links.innerHTML = '';
             pages           = [ ];
+
+            if (switchToFirst && response.pages.length)
+            {
+                getPage(response.pages[0].url);
+            }
 
             for (var i = 0; i < response.pages.length; i++)
             {
