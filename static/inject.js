@@ -6,7 +6,7 @@ var getOffset = window.parent.getOffset;
 window.oncontextmenu = (function(_e)
 {
     var el = _e.toElement || _e.target;
-    if (el.isAnnotation) return false;
+    if (el.isAnnotation) return true;
 
     menu.style.display = 'block';
     menu.style.left    = _e.layerX + 'px';
