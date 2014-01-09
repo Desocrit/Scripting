@@ -341,12 +341,8 @@ function saveAnnotation(e)
     anot.inEdit = false;
 }
 
-function pingForAnnotations()
+function getAnnotations()
 {
-    window.setTimeout(pingForAnnotations, 3000);
-
-    if (!currentPage) return;
-    
     jsonCall
     (
         'get_annotations',
@@ -367,8 +363,8 @@ function pingForAnnotations()
                         {   
                             callback
                             (
-                                response.annotations[i].x_pos,
-                                response.annotations[i].y_pos,
+                                parseInt(response.annotations[i].x_pos),
+                                parseInt(response.annotations[i].y_pos),
                                 response.annotations[i].element_id,
                                 response.annotations[i].contents,
                                 response.annotations[i].uniqid
@@ -397,6 +393,13 @@ function pingForAnnotations()
         }),
         displayServerError
     );
+}
+
+function pingForAnnotations()
+{
+    getAnnotations();
+
+    window.setTimeout(pingForAnnotations, 3000);
 }
 
 function generalPing()
@@ -504,7 +507,13 @@ function getOffset (element, type)
     return offset;
 }
 
-function pageChanged(url)
+function pageChanged(url, real)
 {
+    currentPage = url;
     document.getElementById('search').value = url;
+
+    if (real)
+    {
+        getAnnotations();
+    }
 }
