@@ -45,114 +45,153 @@ var pages = [ ];
  {
  }
 
- function err(msg, command, raw, e)
- {
+/**
+ * Prints out and logs network errs
+ */
+function err(msg, command, raw, e)
+{
     console.log(msg + '. Command: ' + command + '. See error[' + error.length + ']');
     error.push({"data" : raw, "exception" : e});
 }
 
 
+/**
+ * Does a call to the server
+ *
+ * @param command  The command to execute
+ * @param vars     NVPs of paramenters for the command
+ * @param callback The function to call when a 200 response is recieved
+ */
 function apiCall(command, vars, callback)
 {
     var xmlhttp = window.XMLHttpRequest
-    ? new XMLHttpRequest()
-        : new ActiveXObject("Microsoft.XMLHTTP"); // IE <= 6
+        ? new XMLHttpRequest()
+        : new ActiveXObject("Microsoft.XMLHTTP");
 
-        xmlhttp.onreadystatechange = (function()
+    xmlhttp.onreadystatechange = (function()
+    {
+        if (xmlhttp.readyState == 4)
         {
-            if (xmlhttp.readyState == 4)
+            if (xmlhttp.status == 200)
             {
-                if (xmlhttp.status == 200)
+                try
                 {
-                    try
-                    {
-                        callback(xmlhttp.responseText);
-                    }
-                    catch (e)
-                    {
-                        err('Failed', command, lastResponse, e);
-                    }
+                    callback(xmlhttp.responseText);
                 }
-                else
+                catch (e)
                 {
-                    err('Server Error', command, lastResponse, null);
+                    err('Failed', command, lastResponse, e);
                 }
             }
-        });
+            else
+            {
+                err('Server Error', command, lastResponse, null);
+            }
+        }
+    });
 
-        try
-        {
-            var req =
-            '/end?project_name='  + project
+    try
+    {
+        // Build the request path
+        var req =
+              '/end?project_name='  + project
             + '&'              + vars
             + '&command='      + command
             + '&output_type=json';
 
-            xmlhttp.timeout   = 6000;
-            xmlhttp.ontimeout = displayTimeoutError;
-            xmlhttp.open('GET', req, true);
-            xmlhttp.send();
-        }
-        catch (e)
+        xmlhttp.timeout   = 6000; // GAE is slow sometimes
+        xmlhttp.ontimeout = displayTimeoutError;
+        xmlhttp.open('GET', req, true);
+        xmlhttp.send();
+    }
+    catch (e)
+    {
+        err('Server Error', command, lastResponse, null);
+    }
+}
+
+/**
+ * Wraps an apiCall by parsing the response as JSON
+ *
+ * @param command  The command to execute
+ * @param vars     NVPs of paramenters for the command
+ * @param success  The callback if status == 'success'
+ * @param fail     The callback is status != 'success'
+ */
+function jsonCall(command, vars, success, fail)
+{
+    apiCall
+    (
+        command,
+        vars,
+        (function(text)
         {
-            err('Server Error', command, lastResponse, null);
-        }
-    }
-
-
-    function jsonCall(command, vars, success, fail)
-    {
-        apiCall
-        (
-            command,
-            vars,
-            (function(text)
+            try
             {
-                try
-                {
-                    lastResponse = JSON.parse(text);
-                }
-                catch (e)
-                {
-                    err('Not JSON', command, lastResponse, e);
-                }
+                lastResponse = JSON.parse(text);
+            }
+            catch (e)
+            {
+                err('Not JSON', command, lastResponse, e);
+            }
 
-                if (lastResponse.status == 'success')
-                {
-                    success(lastResponse);
-                }
-                else
-                {
-                    fail(lastResponse);
-                }
-            })
-            );
-    }
+            if (lastResponse.status == 'success')
+            {
+                success(lastResponse);
+            }
+            else
+            {
+                fail(lastResponse);
+            }
+        })
+    );
+}
 
-    function login_url() {
-        jsonCall(
-            "login", "", function(response) {
-                document.getElementById("login_link").href = response.login_url;
-            }, displayServerError)
-    }
+/**
+ * Gets the login url from the server and writes it to the login button
+ */
+function login_url()
+{
+    jsonCall
+    (
+        "login", "",
+        function(response)
+        {
+            document.getElementById("login_link").href = response.login_url;
+        },
+        displayServerError
+    );
+}
 
-    function login()
+/**
+ * Opens up the page after the user has logged in
+ */
+function login()
+{
+    $("#front_page").animate({opacity: 0.0}).css({top: "-120%"}, 500);
+    $("#container").css({opacity: 0.0, visibility: "visible"}).animate({opacity: 1.0}, 500);
+    $("header").animate({top: '0'}, 500);
+    $("footer").animate({bottom: '0'}, 500);
+}
+
+/**
+ * Gets the logout url from the server and writes it to the logout button
+ */
+function logout_url()
+{
+    var logoutLinkUpdater = function(response)
     {
-        $("#front_page").animate({opacity: 0.0}).css({top: "-120%"}, 500);
-        $("#container").css({opacity: 0.0, visibility: "visible"}).animate({opacity: 1.0}, 500);
-        $("header").animate({top: '0'}, 500);
-        $("footer").animate({bottom: '0'}, 500);
-    }
-
-    function logout_url() {
-      var logoutLinkUpdater = function(response) {
         document.getElementById("logout_link").href = response.logout_url;
     };
+
     jsonCall("logout", "", logoutLinkUpdater, logoutLinkUpdater);
 }
 
-
-
+/**
+ * Gets a page and loads it into the iframe
+ *
+ * @param url The page to load
+ */
 function getPage(url)
 {
     var frame = document.getElementById('page_holder');
@@ -169,19 +208,32 @@ function getPage(url)
     document.getElementById('search').value = url;
 }
 
-function createProject(){
+/**
+ * Creates a project
+ */
+function createProject()
+{
     var newName = prompt('Enter new project name:');
-    if(newName){
+
+    if(newName)
+    {
         project = newName;
         jsonCall("Create+Project",null,displayCreatePage, displayServerError);
         listProjects();
         switchProject(newName);
         alert("project" + newName + " created!")
-    } else {
+    }
+    else
+    {
         alert('Project name required.');
     }
 }
 
+/**
+ * Switches to the given project and loads its first page
+ *
+ * @param project_name The project to load
+ */
 function switchProject(project_name)
 {
     project = project_name;
@@ -200,6 +252,10 @@ function switchProject(project_name)
     }
 }
 
+/**
+ * Deletes the current project (it will switch to another of your
+ * projects afterwards)
+ */
 function deleteProject(){
     var project_name = project;
 
@@ -231,6 +287,9 @@ function deleteProject(){
     }
 }
 
+/**
+ * Adds the current page
+ */
 function buttonAddPage()
 {
     var url = document.getElementById('search').value;
@@ -244,6 +303,9 @@ function buttonAddPage()
     );
 }
 
+/**
+ * Deletes the current page
+ */
 function buttonDeletePage()
 {
     jsonCall
@@ -269,6 +331,11 @@ function buttonDeletePage()
     );
 }
 
+/**
+ * Adds a user to the current project
+ *
+ * @param type "add admin" / "add user"
+ */
 function addUser(type)
 {
     var name = prompt('Enter new user name:')
@@ -283,6 +350,11 @@ function addUser(type)
     }
 }
 
+/**
+ * Lists the pages of the current project
+ *
+ * @param switchToFirst If true, it'll load the first page
+ */
 function listPages(switchToFirst)
 {
     var links = document.getElementById('links');
@@ -309,11 +381,18 @@ function listPages(switchToFirst)
             }
         }),
         displayServerError
-        );
+    );
 }
 
+/**
+ * Event to save an annotation
+ *
+ * Called when lost focus / dragging has stopped
+ */
 function saveAnnotation(e)
 {
+    // This can be an event in more than one way with more than one
+    // object
     if (this.wrapper)
     {
         var anot = this.wrapper;
@@ -339,6 +418,9 @@ function saveAnnotation(e)
     anot.inEdit = false;
 }
 
+/**
+ * Loads all annotations for the current page
+ */
 function getAnnotations()
 {
     jsonCall
@@ -349,6 +431,8 @@ function getAnnotations()
         {
             var load = (function()
             {
+                // We need the frame to have finished loading before
+                // doing this
                 if (!callback)
                 {
                     window.setTimeout(load, 200);
@@ -357,6 +441,7 @@ function getAnnotations()
                 {
                     for (var i = 0; i < response.annotations.length; i++)
                     {
+                        // Is this annotation currently on the page?
                         if (typeof annotations[response.annotations[i].uniqid] == 'undefined')
                         {   
                             callback
@@ -393,6 +478,9 @@ function getAnnotations()
     );
 }
 
+/**
+ * Pinds the server every 3 seconds for annotations
+ */
 function pingForAnnotations()
 {
     getAnnotations();
@@ -400,6 +488,9 @@ function pingForAnnotations()
     window.setTimeout(pingForAnnotations, 3000);
 }
 
+/** 
+ * Refreshes the page / project list every 10 seconds
+ */
 function generalPing()
 {
     listPages();
@@ -408,6 +499,23 @@ function generalPing()
     window.setTimeout(generalPing, 10000);
 }
 
+/**
+ * Sets off the pings
+ *
+ * @see generalPing()
+ * @see pingForAnnotations()
+ */
+$(document).ready(function()
+{
+    generalPing();
+    pingForAnnotations();
+});
+
+/**
+ * Adds the user's list of objects to the dropdown menu
+ *
+ * @param swithToFirst If true, it'll switch to the first one
+ */
 function listProjects(switchToFirst) {
 
     var projects_list = document.getElementById('project_list');
@@ -428,6 +536,7 @@ function listProjects(switchToFirst) {
                 projects_list.innerHTML += '<li onclick="switchProject(\'' + project + '\')">' + project + '</li>';
             }
 
+            // Pre load the normal access layers
             var normals = [ ];
             for (var i = 0; i < response.normal_access.length; i++)
             {
@@ -455,15 +564,45 @@ function listProjects(switchToFirst) {
             }
         }),
         displayServerError
-        );
+    );
 }
 
-
+/** 
+ * Called by inject.js (from the iframe) to a) tell this window it's
+ * ready and b) give it a way to pass updates to it
+ *
+ * @param cb The function to update annotations
+ */
 function setCallback(cb)
 {
     callback = cb;
 }
 
+/**
+ * Called by the iframe when the page is changed to update the search
+ * url bar
+ *
+ * (If this is a page the project has saved, it will also grab its
+ * annotations)
+ *
+ * @param url  The url that was loaded
+ * @param real Is this a saved page?
+ */
+function pageChanged(url, real)
+{
+    currentPage = url;
+    document.getElementById('search').value = url;
+
+    if (real)
+    {
+        getAnnotations();
+    }
+}
+
+/**
+ * Gets the current user from the server and writes it to the username
+ * element
+ */
 function writeUsername()
 {
     var nameText = document.getElementById('usn');
@@ -480,12 +619,12 @@ function writeUsername()
     );
 }
 
-$(document).ready(function()
-{
-    generalPing();
-    pingForAnnotations();
-});
-
+/**
+ * Calculates the absolute left / top positions for a given element
+ *
+ * @param element The element to test
+ * @param test    "Left" / "Top"
+ */
 function getOffset (element, type)
 {
     var offset = 0;
@@ -496,15 +635,4 @@ function getOffset (element, type)
     }
 
     return offset;
-}
-
-function pageChanged(url, real)
-{
-    currentPage = url;
-    document.getElementById('search').value = url;
-
-    if (real)
-    {
-        getAnnotations();
-    }
 }
