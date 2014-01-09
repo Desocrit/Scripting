@@ -1,5 +1,5 @@
 import cgi
-import urllib
+import urllib2
 import HTMLParser
 
 from google.appengine.api import users
@@ -285,7 +285,7 @@ class MainPage(webapp2.RequestHandler):
     def add_css(self, url):
         ''' Reads a css file, adding to or getting from the database. '''
         try:
-            css = urllib.urlopen(html.unescape(url)).read()
+            css = urllib2.urlopen(html.unescape(url)).read()
         except:
             return False
 
@@ -311,7 +311,7 @@ class MainPage(webapp2.RequestHandler):
         url = self.request.get('url')
         # Try to grab the page. Return on any exception
         try:
-            html = urllib.urlopen(url).read()
+            html = urllib2.urlopen(url).read()
             html = html.decode("utf-8")
         except:
             return self.print_js_error("Domain Not Found")
@@ -485,10 +485,13 @@ class MainPage(webapp2.RequestHandler):
         if not url:
             return self.print_js_error("Url not found")
         try:
-            html = urllib.urlopen(url).read()
+            page = urllib2.urlopen(url)
+            url  = page.geturl()
+            html = page.read()
             html = html.decode("utf-8")
         except Exception as inst:
             return self.print_js_error("Domain Not Found")
+
         user = users.get_current_user()
         if not user:
             return self.print_js_error("You must be logged in to use this command")
@@ -503,6 +506,12 @@ class MainPage(webapp2.RequestHandler):
         html, css = self.replace_css_links(url, html)
         html = self.replace_links(url, html)
         html = self.removeScripts(html)
+
+        notify  = '<script>window.parent.pageChanged(\'' + url + '\');</script>'
+        html, n = re.subn('</body>', notify + '</body>', html)
+        if n == 0:
+            html += notify
+
         self.response.write(html)
         return True
 
@@ -697,7 +706,7 @@ class MainPage(webapp2.RequestHandler):
         user = users.get_current_user()
         key = ndb.Key("Project", project_name)
         if command == 'switch project':
-            self.redirect('/?' + urllib.urlencode(
+            self.redirect('/?' + urllib2.urlencode(
                 {'project_name': project_name}))
             self.project_to_json(key.get())
             return self.status('success')

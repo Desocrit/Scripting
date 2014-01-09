@@ -502,3 +502,8 @@ function getOffset (element, type)
 
     return offset;
 }
+
+function pageChanged(url)
+{
+    document.getElementById('search').value = url;
+}
