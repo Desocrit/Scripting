@@ -115,7 +115,13 @@ header
 	display: inline;
 	position: absolute;
 	right: 1%;
-	top: -5px;
+    top: 5px;
+}
+
+#user_name
+{
+    position: relative;
+    bottom: 4px;
 }
 
 footer 
