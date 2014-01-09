@@ -477,7 +477,7 @@ function writeUsername()
         {
             nameText.innerHTML = response.username;
         })
-        );
+    );
 }
 
 $(document).ready(function()

@@ -84,15 +84,8 @@ var makeAnnotation = (function(x, y, el, text, uniqid)
     ({
         stop: window.parent.saveAnnotation,
         start: (function() { this.inEdit = true; })
-    })
-    /*
-    .click(function() {
-        $(this).draggable( {disabled: true});
-    }).dblclick(function() {
-        $(this).draggable({ disabled: false });
-    })
-    */
-    .resizable();
+    }).resizable();
+    
     $(".annotation_wrap").on("mouseout", function() {
         $(this).draggable( {disabled: false});
     })
