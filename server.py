@@ -42,7 +42,7 @@ ADD_USER_FORM = """\
     </form>
 """
 
-ACCESS_FORM = """\
+ACCESS_FORM = """
      <form>
      Access level:
       <input type="hidden" name="project_name" value = "%s">
@@ -52,7 +52,7 @@ ACCESS_FORM = """\
     <hr>
 """
 
-SWITCH_PROJECT_FORM = """\
+SWITCH_PROJECT_FORM = """
     <form>
     Project name:
       <div><input value="%s" name="project_name" cols="30"></div>
@@ -60,6 +60,16 @@ SWITCH_PROJECT_FORM = """\
       <input name="command" type="submit" value="Switch Project">
       <input name="command" type="submit" value="Delete Project">
     </form>
+"""
+
+INJECTION = """
+<script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+<script src="http://code.jquery.com/ui/1.10.3/jquery-ui.js"></script>
+<script src="/static/inject.js"></script>
+<link rel="stylesheet"
+    href="http://code.jquery.com/ui/1.10.3/themes/smoothness/jquery-ui.css"/>
+<link rel="stylesheet" href="/static/inject.css" />
+<script>window.parent.pageChanged(' %s ', 1);</script>
 """
 
 DEFAULT_OUTPUT_TYPE = "html"
@@ -315,7 +325,7 @@ class MainPage(webapp2.RequestHandler):
             html = html.decode("utf-8")
         except:
             return self.print_js_error("Domain Not Found")
-        
+
         # Add the page to the database if it does not exist, otherwise get it.
         if not Page.query(Page.url == url, ancestor=key).fetch():
             # Make the page
@@ -334,15 +344,9 @@ class MainPage(webapp2.RequestHandler):
         html = self.replace_links(url, html)
         html = self.replaceImages(url, html)
 
-        notify  = '<script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>'
-        notify += '<script src="http://code.jquery.com/ui/1.10.3/jquery-ui.js"></script>'
-        notify += '<script src="/static/inject.js"></script>'
-        notify += '<link rel="stylesheet" href="http://code.jquery.com/ui/1.10.3/themes/smoothness/jquery-ui.css" />'
-        notify += '<link rel="stylesheet" href="/static/inject.css" />'
-        notify += '<script>window.parent.pageChanged(\'' + url + '\', 1);</script>'
-        html, n = re.subn('</body>', notify + '</body>', html)
+        html, n = re.subn('</body>', (INJECTION % url) + '</body>', html)
         if n == 0:
-            html += notify
+            html += (INJECTION % url)
 
         # Add a new version at the current time
         vid = Version.query().count()
@@ -485,16 +489,18 @@ class MainPage(webapp2.RequestHandler):
 
     def replaceImages(self, url, html):
         imgs = re.findall("<img([^>]*) src=('|\")(.*?)('|\")", html, re.DOTALL)
-        for img in imgs:
-            html = sub(re.escape('<img' + img[0] + ' src=' + img[1] + img[2] + img[3]), \
-                '<img' + img[0] + ' src=' + img[1] + self.complete_href(url, img[2]) + img[3], html)
+        for img in imgs:  # Somehow this is 'correct' indenting. wat
+            html = sub(re.escape('<img' + img[0] + ' src=' +
+                                 img[1] + img[2] + img[3]),
+                       '<img' + img[0] + ' src=' + img[1] +
+                       self.complete_href(url, img[2]) + img[3], html)
         return html
 
     def removeScripts(self, html):
         return sub(r'<script(.)*?</script>', "", html, 0, re.DOTALL)
 
     def print_js_error(self, msg):
-        self.response.write('<script>alert(\'' + msg + '\');</script>');
+        self.response.write('<script>alert(\'' + msg + '\');</script>')
         return True
 
     def temp_get(self):
@@ -505,15 +511,16 @@ class MainPage(webapp2.RequestHandler):
             return self.print_js_error("Url not found")
         try:
             page = urllib2.urlopen(url)
-            url  = page.geturl()
+            url = page.geturl()
             html = page.read()
             html = html.decode("utf-8")
-        except Exception as inst:
+        except:
             return self.print_js_error("Domain Not Found")
 
         user = users.get_current_user()
         if not user:
-            return self.print_js_error("You must be logged in to use this command")
+            return self.print_js_error("You must be logged in " +
+                                       "to use this command")
 
         # Save the page details
         tp = TempPage.query(TempPage.user == user).fetch()
@@ -528,7 +535,8 @@ class MainPage(webapp2.RequestHandler):
         html = self.removeScripts(html)
         html = self.replaceImages(url, html)
 
-        notify  = '<script>window.parent.pageChanged(\'' + url + '\', 0);</script>'
+        notify = '<script>window.parent.pageChanged(\''
+        notify += url + '\', 0);</script>'
         html, n = re.subn('</body>', notify + '</body>', html)
         if n == 0:
             html += notify
@@ -545,17 +553,16 @@ class MainPage(webapp2.RequestHandler):
         if not query or not query.temp_url:
             return self.status("No temp page found.")
         return self.add_page(query.temp_url)
-    
+
     def delete_annotation(self):
         uid = self.request.get("uniqid")
         if not uid:
             return self.status("No UID was specified")
-        annotation = Annotation.query(Annotation.uniqid==uid).fetch()
+        annotation = Annotation.query(Annotation.uniqid == uid).fetch()
         if not annotation:
             return self.status("No annotation with that UID")
         annotation[0].key.delete()
         self.status('success')
-            
 
     def annotate(self):
         ''' Annotates a position in the page. Updates existing annotation
@@ -668,13 +675,13 @@ class MainPage(webapp2.RequestHandler):
                 redirect += self.request.get('project_name')
         if command == 'logout':
             if user:
-                self.json['logout_url'] = users.create_logout_url('/');
-                self.status('success');
+                self.json['logout_url'] = users.create_logout_url('/')
+                self.status('success')
             else:
-                self.status('fail');
+                self.status('fail')
         elif command == 'login':
             self.json['login_url'] = users.create_login_url('/')
-            self.status('success');
+            self.status('success')
         elif command == 'get user':
             if user:
                 self.json['username'] = user.email()
@@ -682,7 +689,6 @@ class MainPage(webapp2.RequestHandler):
             else:
                 self.status('false')
             return True
-
 
     def handle_page_commands(self, command, project, user):
         ''' Handles commands related to pages. '''
@@ -790,7 +796,7 @@ class MainPage(webapp2.RequestHandler):
             if user_name not in project.members:
                 project.members.append(user_name)
                 project.put()
-            
+
             return self.status('success')
         if command == "remove access":
             if len(project.members) != 1:
@@ -808,7 +814,7 @@ class MainPage(webapp2.RequestHandler):
             if user_name not in project.admins:
                 project.admins.append(user_name)
                 project.put()
-            
+
             return self.status('success')
         if command == "remove admin":
             if len(project.admins) != 1:
@@ -828,13 +834,6 @@ class MainPage(webapp2.RequestHandler):
         self.output_type = self.request.get('output_type', DEFAULT_OUTPUT_TYPE)
         self.json = {}
         self.html = HTMLParser.HTMLParser()
-
-        # This is only required for the dev pages, and they don't need
-        # to be compliant. But it was printing this out at inappropriate
-        # times so I removed
-        #if self.output_type.lower() == "html":
-            #self.response.write('<html><body>')
-
         project_name = self.request.get('project_name', DEFAULT_PROJECT_NAME)
         project = None
         command = self.request.get('command', None)
@@ -845,6 +844,9 @@ class MainPage(webapp2.RequestHandler):
                 if self.output_type.lower() == 'json':
                     self.response.write(dump(self.json, indent=4))
                 return
+        # Yeah, this was just in the wrong place. Putting it here fixes things.
+        if self.output_type.lower() == "html":
+            self.response.write('<html><body>')
         # Get the project details.'''
         if users.get_current_user():
             if not project:
