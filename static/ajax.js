@@ -7,6 +7,7 @@ var userName;
 var lastResponse;
 var error = [ ];
 var projects = [ ];
+var pages = [ ];
 
 /**
  * Should display the main interface (called after successful login)
@@ -270,8 +271,32 @@ function buttonAddPage()
         "url="+ encodeURIComponent(url),
         (function(){getPage(url);}),
         displayPageNotFound
-        );
+    );
+}
 
+function buttonDeletePage()
+{
+    jsonCall
+    (
+        "Delete+Page",
+        "url="+ encodeURIComponent(currentPage),
+        (function()
+        {
+            var newPage;
+            for (var i = 0; i < pages.length; i++)
+            {
+                if (pages[i] != currentPage)
+                {
+                    newPage = pages[i];
+                    break;
+                }
+            }
+
+            listPages();
+            getPage(newPage ? newPage : 'http://www.wikipedia.com/');
+        }),
+        displayPageNotFound
+    );
 }
 
 function listPages()
@@ -284,10 +309,13 @@ function listPages()
         (function(response)
         {
             links.innerHTML = '';
+            pages           = [ ];
+
             for (var i = 0; i < response.pages.length; i++)
             {
                 var url = response.pages[i].url;
 
+                pages.push(url);
                 links.innerHTML += '<li onclick="getPage(\'' + url + '\')">' + url + '</li>';
             }
         }),
