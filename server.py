@@ -285,7 +285,7 @@ class MainPage(webapp2.RequestHandler):
     def add_css(self, url):
         ''' Reads a css file, adding to or getting from the database. '''
         try:
-            css = urllib2.urlopen(html.unescape(url)).read()
+            css = urllib2.urlopen(self.html.unescape(url)).read()
         except:
             return False
 
