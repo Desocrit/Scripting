@@ -802,6 +802,9 @@ class MainPage(webapp2.RequestHandler):
             else:
                 return self.status("Cannot remove final user from project.")
         if command == "add admin":
+            if user_name not in project.members:
+                project.members.append(user_name)
+
             if user_name not in project.admins:
                 project.admins.append(user_name)
                 project.put()

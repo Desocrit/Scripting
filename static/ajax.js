@@ -224,10 +224,22 @@ function createProject(){
     }
 }
 
-function switchProject(project_name){
+function switchProject(project_name)
+{
     project = project_name;
     document.getElementById('project_name_el').innerHTML = project_name;
     listPages();
+
+    for (var i in projects)
+    {
+        if (projects[i].name == project)
+        {
+            document.getElementById('admin_tasks').style.display =
+                projects[i].level == 'admin'
+                  ? ''
+                  : 'none';
+        }
+    }
 }
 
 function deleteProject(){
@@ -297,6 +309,20 @@ function buttonDeletePage()
         }),
         displayPageNotFound
     );
+}
+
+function addUser()
+{
+    var name = prompt('Enter new user name:')
+    if (name)
+    {
+        jsonCall
+        (
+            'add access', 'user_name=' + name,
+            (function(){ alert(name + ' has been added to ' + project); }),
+            (function(response) { alert(response.status); })
+        );
+    }
 }
 
 function listPages()
@@ -451,7 +477,7 @@ function listProjects(switchToFirst) {
             }
             
             if (normals.length > 0)   projects_list.innerHTML += '<li><b>Member Access</b></li>';
-            for (var i = 0; i < normals; i++)
+            for (var i = 0; i < normals.length; i++)
             {
                 var project = normals[i];
 
