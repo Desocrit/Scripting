@@ -332,6 +332,7 @@ class MainPage(webapp2.RequestHandler):
         html = self.removeScripts(html)
         html = self.addElementIds(html)
         html = self.replace_links(url, html)
+        html = self.replaceImages(url, html)
 
         notify  = '<script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>'
         notify += '<script src="http://code.jquery.com/ui/1.10.3/jquery-ui.js"></script>'
@@ -482,6 +483,13 @@ class MainPage(webapp2.RequestHandler):
                 i += 1
         return html
 
+    def replaceImages(self, url, html):
+        imgs = re.findall("<img([^>]*) src=('|\")(.*?)('|\")", html, re.DOTALL)
+        for img in imgs:
+            html = sub(re.escape('<img' + img[0] + ' src=' + img[1] + img[2] + img[3]), \
+                '<img' + img[0] + ' src=' + img[1] + self.complete_href(url, img[2]) + img[3], html)
+        return html
+
     def removeScripts(self, html):
         return sub(r'<script(.)*?</script>', "", html, 0, re.DOTALL)
 
@@ -518,6 +526,7 @@ class MainPage(webapp2.RequestHandler):
         html, css = self.replace_css_links(url, html)
         html = self.replace_links(url, html)
         html = self.removeScripts(html)
+        html = self.replaceImages(url, html)
 
         notify  = '<script>window.parent.pageChanged(\'' + url + '\', 0);</script>'
         html, n = re.subn('</body>', notify + '</body>', html)
