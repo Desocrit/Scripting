@@ -44,8 +44,8 @@ var makeAnnotation = (function(x, y, el, text, uniqid)
     var annotationContent = document.createElement('textarea');
     annotationContent.className = 'annotation_text';
     annotationContent.value           = text;
+    annotationContent.placeholder     = 'Type Here...';
     annotationContent.contentEditable = true;
-    annotationContent.on
     annotationContent.isAnnotation    = true;
     annotationContent.onfocus         = (function() { this.wrapper.inEdit = true; });
     annotationContent.onblur          = window.parent.saveAnnotation;
@@ -59,6 +59,18 @@ var makeAnnotation = (function(x, y, el, text, uniqid)
     var closeX = document.createElement('span');
     closeX.className = 'closeX';
     closeX.innerHTML = 'x';
+    closeX.uniqid    = uniqid;
+    closeX.wrapper   = annotationWrap;
+    closeX.onclick   = (function()
+    {
+        window.parent.jsonCall
+        (
+            'delete annotation', 'uniqid=' + this.uniqid,
+            (function(){}), (function(){})
+        );
+        delete window.parent.annotations[this.uniqid];
+        document.body.removeChild(this.wrapper);
+    });
 
     menu.style.display = 'none';
     document.body.appendChild(annotationWrap);
@@ -73,11 +85,14 @@ var makeAnnotation = (function(x, y, el, text, uniqid)
         stop: window.parent.saveAnnotation,
         start: (function() { this.inEdit = true; })
     })
+    /*
     .click(function() {
         $(this).draggable( {disabled: true});
     }).dblclick(function() {
         $(this).draggable({ disabled: false });
-    }).resizable();
+    })
+    */
+    .resizable();
     $(".annotation_wrap").on("mouseout", function() {
         $(this).draggable( {disabled: false});
     })
@@ -92,7 +107,7 @@ var addAnnotation = (function()
         e.layerX - getOffset(el, 'Left'),
         e.layerY - getOffset(el, 'Top'),
         currentElement,
-        "Type here...",
+        "",
         generateUid()
     );
 });
@@ -106,7 +121,7 @@ $(document).ready(function()
 
         var a       = document.createElement('a');
         a.onclick   = addAnnotation;
-        a.innerText = 'Add Annotation';
+        a.innerHTML = 'Add Annotation';
         a.className = 'context_menu';
         menu.appendChild(a);
 

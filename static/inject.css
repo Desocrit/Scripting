@@ -35,6 +35,7 @@
     padding: 2px;
     font-size: 10px;
     color: #000;
+    cursor: pointer;
 }
 
 .close:hover {

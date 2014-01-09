@@ -269,14 +269,14 @@ function buttonDeletePage()
     );
 }
 
-function addUser()
+function addUser(type)
 {
     var name = prompt('Enter new user name:')
     if (name)
     {
         jsonCall
         (
-            'add access', 'user_name=' + name,
+            type, 'user_name=' + name,
             (function(){ alert(name + ' has been added to ' + project); }),
             (function(response) { alert(response.status); })
         );
