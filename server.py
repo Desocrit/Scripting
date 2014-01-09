@@ -285,7 +285,7 @@ class MainPage(webapp2.RequestHandler):
     def add_css(self, url):
         ''' Reads a css file, adding to or getting from the database. '''
         try:
-            css = urllib2.urlopen(html.unescape(url)).read()
+            css = urllib.urlopen(HTMLParser.HTMLParser().unescape(url)).read()
         except:
             return False
 
@@ -803,7 +803,6 @@ class MainPage(webapp2.RequestHandler):
         ''' Draws the main page, and handles any commands '''
         self.output_type = self.request.get('output_type', DEFAULT_OUTPUT_TYPE)
         self.json = {}
-        self.html = HTMLParser.HTMLParser()
 
         # This is only required for the dev pages, and they don't need
         # to be compliant. But it was printing this out at inappropriate
