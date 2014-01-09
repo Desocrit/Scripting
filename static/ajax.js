@@ -491,13 +491,6 @@ function writeUsername()
         );
 }
 
-function tempView(url)
-{
-    document.getElementById('page_holder').src =
-          '/end?command=Temp+View'
-        + '&url=' + encodeURIComponent(url);   
-}
-
 $(document).ready(function()
 {
     generalPing();
