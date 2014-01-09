@@ -331,8 +331,8 @@ function saveAnnotation(e)
         + '&url=' + encodeURIComponent(currentPage)
         + '&element_id=' + anot.subjectElement.id
         + '&uniqid=' + anot.uniqid
-        + '&x_pos=' + parseInt(anot.style.left)
-        + '&y_pos=' + parseInt(anot.style.top),
+        + '&x_pos=' + (parseInt(anot.style.left) - getOffset(anot.subjectElement, 'Left'))
+        + '&y_pos=' + (parseInt(anot.style.top) - getOffset(anot.subjectElement, 'Top')),
         (function() { }),
         displayServerError
     );
@@ -371,7 +371,7 @@ function pingForAnnotations()
                                 response.annotations[i].element_id,
                                 response.annotations[i].contents,
                                 response.annotations[i].uniqid
-                                );
+                            );
                         }
                         else
                         {
@@ -380,8 +380,13 @@ function pingForAnnotations()
                             if (!anot.inEdit)
                             {
                                 anot.contentEl.value = response.annotations[i].contents;
-                                anot.style.left      = response.annotations[i].x_pos + 'px';
-                                anot.style.top       = response.annotations[i].y_pos + 'px';
+                                anot.relativeCoords  =
+                                {
+                                    "x" : parseInt(response.annotations[i].x_pos),
+                                    "y" : parseInt(response.annotations[i].y_pos)
+                                };
+
+                                anot.resize();
                             }
                         }
                     }
@@ -486,4 +491,14 @@ $(document).ready(function()
     pingForAnnotations();
 });
 
+function getOffset (element, type)
+{
+    var offset = 0;
+    while (element.offsetParent)
+    {
+        offset += element['offset' + type];
+        element = element.offsetParent;
+    }
 
+    return offset;
+}
