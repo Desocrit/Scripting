@@ -295,25 +295,6 @@ function listPages()
         );
 }
 
-function saveAnnotations()
-{
-    for (var i in annotations)
-    {
-        jsonCall
-        (
-          'Annotate',
-          'message=' + annotations[i].contentEl.value
-          + '&url=' + encodeURIComponent(currentPage)
-          + '&element_id=' + annotations[i].subjectElement.id
-          + '&uniqid=' + annotations[i].uniqid
-          + '&x_pos=' + parseInt(annotations[i].style.left)
-          + '&y_pos=' + parseInt(annotations[i].style.top),
-          (function() { }),
-          displayServerError
-          );
-    }
-}
-
 function saveAnnotation(e)
 {
     if (this.wrapper)
