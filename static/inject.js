@@ -47,8 +47,8 @@ window.oncontextmenu = (function(_e)
     if (el.isAnnotation) return true;
 
     menu.style.display = 'block';
-    menu.style.left    = _e.layerX + 'px';
-    menu.style.top     = _e.layerY + 'px';
+    menu.style.left    = _e.pageX + 'px';
+    menu.style.top     = _e.pageY + 'px';
     currentElement     = el.id;
     e                  = _e;
 
@@ -172,8 +172,8 @@ var addAnnotation = (function()
 
     makeAnnotation
     (
-        e.layerX - getOffset(el, 'Left'),
-        e.layerY - getOffset(el, 'Top'),
+        e.pageX - getOffset(el, 'Left'),
+        e.pageY - getOffset(el, 'Top'),
         currentElement,
         "",
         generateUid()
