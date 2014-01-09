@@ -112,6 +112,7 @@ $(document).ready(function()
 
     document.body.appendChild(menu);
 
+    window.parent.annotations = { };
     window.parent.setCallback(makeAnnotation);
 });
 

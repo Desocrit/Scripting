@@ -333,6 +333,16 @@ class MainPage(webapp2.RequestHandler):
         html = self.addElementIds(html)
         html = self.replace_links(url, html)
 
+        notify  = '<script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>'
+        notify += '<script src="http://code.jquery.com/ui/1.10.3/jquery-ui.js"></script>'
+        notify += '<script src="/static/inject.js"></script>'
+        notify += '<link rel="stylesheet" href="http://code.jquery.com/ui/1.10.3/themes/smoothness/jquery-ui.css" />'
+        notify += '<link rel="stylesheet" href="/static/inject.css" />'
+        notify += '<script>window.parent.pageChanged(\'' + url + '\', 1);</script>'
+        html, n = re.subn('</body>', notify + '</body>', html)
+        if n == 0:
+            html += notify
+
         # Add a new version at the current time
         vid = Version.query().count()
         version = Version(parent=page.key, id=vid, v_id=vid, creator=user)
@@ -349,7 +359,8 @@ class MainPage(webapp2.RequestHandler):
         # Try to get the page. Return if it is not found.
         page = ndb.Key("Project", project_name, "Page", url).get()
         if not page:
-            return self.print_js_error("Page not found")
+            return self.temp_get()
+            #return self.print_js_error("Page not found")
         # Grab the latest version of the page.
         latest = Version.query(ancestor=page.key)
         latest = latest.order(-Version.time_added).fetch()
@@ -495,6 +506,7 @@ class MainPage(webapp2.RequestHandler):
         user = users.get_current_user()
         if not user:
             return self.print_js_error("You must be logged in to use this command")
+
         # Save the page details
         tp = TempPage.query(TempPage.user == user).fetch()
         if tp == []:
@@ -507,7 +519,7 @@ class MainPage(webapp2.RequestHandler):
         html = self.replace_links(url, html)
         html = self.removeScripts(html)
 
-        notify  = '<script>window.parent.pageChanged(\'' + url + '\');</script>'
+        notify  = '<script>window.parent.pageChanged(\'' + url + '\', 0);</script>'
         html, n = re.subn('</body>', notify + '</body>', html)
         if n == 0:
             html += notify

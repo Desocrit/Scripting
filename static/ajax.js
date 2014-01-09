@@ -171,6 +171,7 @@ function getPage(url)
     {
         var doc = frame.contentWindow.document;
 
+        /*
         var jq  = doc.createElement('script');
         jq.src = 'http://code.jquery.com/jquery-1.10.1.min.js';
         jq.async = false;
@@ -192,7 +193,6 @@ function getPage(url)
         ui.rel="stylesheet" ;
         ui.href="http://code.jquery.com/ui/1.10.3/themes/smoothness/jquery-ui.css" ;
         ui.type="text/css";
-
         
         doc.head.appendChild(ui);
 
@@ -201,8 +201,9 @@ function getPage(url)
         doc.head.appendChild(jui);
 
         doc.head.appendChild(s);
+        */
 
-        pingForAnnotations();
+        //pingForAnnotations();
         
     });
 
