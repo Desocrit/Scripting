@@ -1,6 +1,41 @@
+/**
+ * inject.js
+ *
+ * This file is injected into all loaded pages - it handles right clicks
+ * and annotations
+ */
+
+
+/**
+ * This is the context menu
+ */
 var menu;
+
+/**
+ * The last element to be right clicked - attacjed to annotations
+ *
+ * @see addAnnotations()
+ * @see window.oncontextmenu()
+ */ 
 var currentElement;
+
+/**
+ * The last oncontextmenu event - used to find the mouse coords when
+ * adding an annotation
+ *
+ * @see addAnnotation()
+ * @see window.oncontextmenu()
+ */
 var e;
+
+/**
+ * getOffset calculates the absolute left / top positions for a given
+ * element
+ *
+ * @param element The element to test
+ * @param test    "Left" / "Top"
+ * @see ajax.js:getOffset()
+ */
 var getOffset = window.parent.getOffset;
 
 /**

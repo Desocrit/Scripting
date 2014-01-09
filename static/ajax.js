@@ -1,12 +1,64 @@
+/**
+ * ajax.js
+ *
+ * Main JS file for the project
+ *
+ * Mainly handles translating js tasks into api calls. Also keeps track
+ * of annotations, pages and projects
+ */
+
+/**
+ * The page we are currently viewing
+ */
 var currentPage;
+
+/**
+ * @depreciated
+ */
 var lastPing;
+
+/**
+ * The current project
+ */
 var project = null;
+
+/**
+ * Set of annotations for the current page
+ */
 var annotations = { };
+
+/**
+ * Callback function to addAnnotation() within the iframe
+ *
+ * @see inject.js:addAnnotation()
+ */
 var callback = null;
+
+/**
+ * The logged in user's email address (used as a user name)
+ */
 var userName;
+
+/**
+ * The last response given by the server. Used to track timeouts
+ */
 var lastResponse;
+
+/**
+ * Error of network errors
+ */
 var error = [ ];
+
+/**
+ * Array of projects the user has access to, mapped with their access
+ * level:
+ *   { "name" : project_name, "level" : access_level }
+ */
 var projects = [ ];
+
+/**
+ * List of pages in the current project
+ */
 var pages = [ ];
 
 /**
