@@ -1,6 +1,7 @@
 var menu;
 var currentElement;
 var e;
+var getOffset = window.parent.getOffset;
 
 window.oncontextmenu = (function(_e)
 {
@@ -28,6 +29,17 @@ var makeAnnotation = (function(x, y, el, text, uniqid)
     annotationWrap.relativeCoords = { "x" : x, "y" : y };
     annotationWrap.style.top      = getOffset(annotationWrap.subjectElement, 'Top')  + y + 'px';
     annotationWrap.style.left     = getOffset(annotationWrap.subjectElement, 'Left') + x + 'px';
+    annotationWrap.resize         = (function()
+    {
+        this.style.left      =
+              this.relativeCoords.x
+            + getOffset(this.subjectElement, 'Left')
+            + 'px';
+        this.style.top      =
+              this.relativeCoords.y
+            + getOffset(this.subjectElement, 'Top')
+            + 'px';
+    });
 
     var annotationContent = document.createElement('textarea');
     annotationContent.className = 'annotation_text';
@@ -73,10 +85,12 @@ var makeAnnotation = (function(x, y, el, text, uniqid)
 
 var addAnnotation = (function()
 {
+    var el = document.getElementById(currentElement);
+
     makeAnnotation
     (
-        e.layerX - getOffset(currentElement, 'Left'),
-        e.layerY - getOffset(currentElement, 'Top'),
+        e.layerX - getOffset(el, 'Left'),
+        e.layerY - getOffset(el, 'Top'),
         currentElement,
         "Type here...",
         generateUid()
@@ -113,14 +127,10 @@ var generateUid = function (separator)
     return (S4() + S4() + delim + S4() + delim + S4() + delim + S4() + delim + S4() + S4() + S4());
 };
 
-var getOffset = (function(element, type)
+window.onresize = (function()
 {
-    var offset = 0;
-    while (element != document.body)
+    for (var i in window.parent.annotations)
     {
-        offset += element['offset' + type];
-        element = element.offsetParent;
+        window.parent.annotations[i].resize();
     }
-
-    return offset;
 });
