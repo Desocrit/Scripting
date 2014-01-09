@@ -273,11 +273,25 @@ border-top-left-radius: 15px;
 border-bottom-left-radius: 15px;
 	position: absolute;
 	overflow: auto;
-	width: 100px;
-	right: -85px;
+	width: 135px;
+	right: -120px;
 	top: 15%;
 	bottom: 15%;
 	background-color: rgba(0,0,0,0.5);
+}
+
+#toolbar ul
+{
+    right: 20px;
+}
+
+#toolbar li
+{
+    width: 80px;
+    display: block !important;
+    margin: 0 auto !important;
+    margin-bottom: 10px !important;
+    text-align: center;
 }
 
 #backbutton {
