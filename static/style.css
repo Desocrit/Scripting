@@ -272,18 +272,27 @@ header, footer {
 #toolbar 
 {
 	-webkit-border-top-left-radius: 15px;
--webkit-border-bottom-left-radius: 15px;
--moz-border-radius-topleft: 15px;
--moz-border-radius-bottomleft: 15px;
-border-top-left-radius: 15px;
-border-bottom-left-radius: 15px;
+	-webkit-border-bottom-left-radius: 15px;
+	-moz-border-radius-topleft: 15px;
+	-moz-border-radius-bottomleft: 15px;
+	border-top-left-radius: 15px;
+	border-bottom-left-radius: 15px;
 	position: absolute;
 	overflow: auto;
 	width: 135px;
 	right: -120px;
 	top: 15%;
 	bottom: 15%;
-	background-color: rgba(0,0,0,0.5);
+	background-color: rgba(255,255,255,0.7);
+}
+
+#toolbar:before {
+	content: "";
+	display: block;
+	position: absolute;
+	height: 100%;
+	width: 15px;
+	background: rgba(0,0,0,0.5);
 }
 
 #toolbar ul
