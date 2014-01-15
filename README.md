@@ -149,7 +149,11 @@ Remove Admin
 
 Revokes admin privelidges to the project.
 
-project_name=x&url=y&command=Add or Replace Page
+Add or Replace Page
+-------------------
+
+`project_name=x&url=y&command=Add or Replace Page`
+
 Adds a page to the project. Alternatively, if the page already exists,
 it will be replaced with the latest live version, and all comments
  will be deleted.
