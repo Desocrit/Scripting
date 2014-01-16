@@ -5,228 +5,205 @@ Simple 'get' server. Responses are in either json or html
 
 To use, simply 'get' with any of the following options:
 
-Login
------
-
-`command=login&redirect_url=whatever`
-
-Logs in. Logs out if already logged in, then tries to login.
-Redirects to redirect_url if provided, otherwise the current
-project's main page.
-
-Logout
-------
-
-`command=logout&redirect_url=whatever`
-
-Logs out if logged in
-Same redirect as above.
-
-Smart Login
------------
-*Deprecated*
-
-`command=smart_login&redirect_url=whatever`
-
-Logs out if logged in. Logs in if logged out. See above for redirect.
-
-Get User
----------
-
-`command=get_user`
-
-Returns json with `{"username": "usn", "status": "success"}` if logged in.
-or `{"status": "Not logged in"}`, if not.
-
-Temp View
----------
-
-`command=temp view&url=something`
-Gets the url requested for temporary viewing only.
-
-Grab Temp Page
---------------
-*Unused*
-
-`command=grab temp page`
-
-Gets the most recently 'temp view'ed page, and adds to the project.
-
-List Projects
--------------
-
-`command=list projects`
-Lists projects the current user has admin or member access to.
-
-Delete All
-----------
-*Unused*
-
-`command=delete all&project_name=x`
-
-Deletes all current pages in the project. Requires admin
-
-List Users
-----------
-
-`command=list users&project_name=x`
-
-Lists all users in the current project level, split by access level.
-
-Project
--------
-*No command for this*
-
-`project_name=x`
-
-View the api for a given project.
-
-Create Project
---------------
-
-`project_name=x&command=Create Project`
-
-Creates a new project with the given name. Creator will
-be added to users list and given admin rights.
-
-Switch Project
---------------
-*Unused*
-
-`project_name=x&command=Switch Project`
-
-Swtiches to the given project. Only needed for the API.
-
-Delete Project
---------------
-
-`project_name=x&command=Delete Project`
-
-Deletes a project. Requires admin rights.
-
-Make Public
------------
-*Unused*
-
-`project_name=x&command=Make Public`
-
-Makes a project public, i.e. anyone can access it.
-
-Make Private
-------------
-*Unused*
-
-`project_name=x&command=Make Private`
-
-Makes a project public, i.e. permission is needed to access it.
-
-Add Access
-----------
-
-`project_name=x&user_name=y&command=Add Access`
-Grants 'view' access to the project.
-
-Removed Access
---------------
-*Unused*
-
-`project_name=x&user_name=y&command=Remove Access`
-
-Revokes 'view' access to the project.
-
-Add Admin
----------
-
-`project_name=x&user_name=y&command=Add Admin`
-
-Grants admin privelidges to the project.
-
-Remove Admin
-------------
-*Unused*
-
-`project_name=x&user_name=y&command=Remove Admin`
-
-Revokes admin privelidges to the project.
-
-Add or Replace Page
--------------------
-
-`project_name=x&url=y&command=Add or Replace Page`
-
-Adds a page to the project. Alternatively, if the page already exists,
-it will be replaced with the latest live version, and all comments
- will be deleted.
- 
-Update Page
------------
-*Unused*
-
-`project_name=x&url=y&command=Update Page`
-
-Updates the page to the latest live version. Comments will be kept 'as-is'.
-This may cause some errrors. If the page is not in the project,
-it will be added.
-
-Page Details
-------------
-*Deprecated*
-
-`project_name=x&url=y&command=Page Details`
-
-Gives full details of the page, including url, and creator, 
-as well as details of every version uploaded, all annotations for
-each version and versions of each annotation. Currently only works
-for JSON.
-
-Roll Back Page
---------------
-*Unused*
-
-`project_name=x&url=y&command=Roll Back Page`
-
-Deletes the latest version of a page. Admin privelidges required.
-If only one version is stored, this will throw an error
-
-View Page
----------
-
-`project_name=x&url=y&command=View Page`
-
-Views the saved html for a page.
-
-Delete Page
------------
-
-`project_name=x&url=y&command=Delete Page`
-
-Removed a page from the project
-
-Annotate
---------
-
-`project_name=x&url=y&command=Annotate&Message=z&x_pos=m&y_pos=n`
-
-Creates an annotation on the given page. Message, x position,
-and y position are all saved, for access via Page Details.
-
-Get Annotations
+Login Commands
 ---------------
 
-`project_name=x&url=x&command=Get Annotations&output_type=json`
+*The following commands handle user logins and will work with / without
+being logged in*
 
-Gets a list of annotations only.
+<table>
+  <tr><th>Command</th><th>Description</th></tr>
+  <tr>
+    <td>login</td>
+    <td>
+      Logs in. Logs out if already logged in, then tries to login.
+      Redirects to redirect_url if provided, otherwise the current
+      project's main page.
+    </td>
+  </tr>
+  <tr>
+    <td>logout</td>
+    <td>
+      Logs out if logged in
+    </td>
+  </tr>
+  <tr>
+    <td>
+      smart_login
+      **Depricated**
+    </td>
+    <td>
+      Logs out if logged in. Logs in if logged out.
+    </td>
+  </tr>
+  <tr>
+    <td>get_user</td>
+    <td>
+      Returns json with `{"username": "usn", "status": "success"}` if
+      logged in or `{"status": "Not logged in"}`, if not.
+    </td>
+  </tr>
+</table>
 
-Get Page Links
---------------
+Project Tasks
+-------------
 
-`project_name=x&url=x&command=Get page links`
+*The following commands deal with project-level tasks, and all require
+`project_name=<project_name>` to be set, with the exception of
+`list_projects`*
 
-Gets a list of page links only.
+<table>
+  <tr><th>Command</th><th>Description</th></tr>
+  <tr>
+    <td>list_projects</td>
+    <td>
+      Lists projects the current user has admin or member access to.
+      Does **not require** `project_name=<project_name>`
+    </td>
+  </tr>
+  <tr>
+    <td>delete_all</td>
+    <td>
+      Deletes all current pages in the project. Requires admin
+    </td>
+  </tr>
+  <tr>
+    <td>list_users</td>
+    <td>
+      Lists all users in the current project level, split by access
+      level.
+    </td>
+  </tr>
+  <tr>
+    <td>create_project</td>
+    <td>
+      Creates a new project with the given name. Creator will
+      be added to users list and given admin rights.
+    </td>
+  </tr>
+  <tr>
+    <td>delete_projects</td>
+    <td>Deletes a project. Requires admin rights.</td>
+  </tr>
+  <tr>
+    <td>make_public</td>
+    <td>Makes a project public, i.e. anyone can access it.</td>
+  </tr>
+  <tr>
+    <td>make_private</td>
+    <td>
+      Makes a project public, i.e. permission is needed to access it.
+    </td>
+  </tr>
+</table>
 
-Output Types
-------------
+User Access Commands
+--------------------
 
-`output_type=html` and `output_type=json`
+These commands grant / revoke privilages to users
 
-Determines the type of output provided.
+They all require a `project_name` and a `user_name`
+
+<table>
+  <tr><th>Command</th><th>Description</th></tr>
+  <tr>
+    <td>add_access</td>
+    <td>Grants 'view' access to the project.</td>
+  </tr>
+  <tr>
+    <td>remove_access</td>
+    <td>Revokes 'view' access to the project.</td>
+  </tr>
+  <tr>
+    <td>add_admin</td>
+    <td>Grants admin privelidges to the project.</td>
+  </tr>
+  <tr>
+    <td>remove_access</td>
+    <td>Revokes admin privelidges to the project.</td>
+  </tr>
+</table>
+
+Page Commands
+-------------
+
+These deal with pages. They each require a `project_name` and `url`
+
+<table>
+  <tr><th>Command</th><th>Description</th></tr>
+  <tr>
+    <td>add_or_replace_page</td>
+    <td>
+      Adds a page to the project. Alternatively, if the page already exists,
+      it will be replaced with the latest live version, and all comments
+      will be deleted.
+    </td>
+  </tr>
+  <tr>
+    <td>update_page</td>
+    <td>
+      Updates the page to the latest live version. Comments will be kept 'as-is'.
+      This may cause some errrors. If the page is not in the project,
+      it will be added.
+    </td>
+  </tr>
+  <tr>
+    <td>page_details</td>
+    <td>
+      Gives full details of the page, including url, and creator, 
+      as well as details of every version uploaded, all annotations for
+      each version and versions of each annotation. Currently only works
+      for JSON.
+    </td>
+  </tr>
+  <tr>
+    <td>roll_back_page</td>
+    <td>
+      Deletes the latest version of a page. Admin privelidges required.
+      If only one version is stored, this will throw an error
+    </td>
+  </tr>
+  <tr>
+    <td>view_page</td>
+    <td>Views the saved html for a page.</td>
+  </tr>
+  <tr>
+    <td>delete_page</td>
+    <td>Removes a page from the project</td>
+  </tr>
+  <tr>
+    <td>annotate</td>
+    <td>
+      Creates an annotation on the given page. Message, x position,
+      and y position are all saved, for access via Page Details.
+      
+      Also requires:
+      * `Message`
+      * `x_pos`
+      * `y_pos`
+      * `element_id`
+      * `uniqid`
+    </td>
+  </tr>
+  <tr>
+    <td>get_annotations</td>
+    <td>Gets a list of annotations only.</td>
+  </tr>
+  <tr>
+    <td>temp_view</td>
+    <td>Gets the url requested for temporary viewing only.</td>
+  </tr>
+  <tr>
+    <td>grab_temp_page</td>
+    <td>Gets the most recently 'temp view'ed page, and adds to the project.</td>
+  </tr>
+</table>
+
+API Commands
+-------
+
+These are only required for the 'admin' pages:
+  * `project_name=x` - View the api for a given project.
+  * `project_name=x&command=Switch Project` - Swtiches to the given project. Only needed for the API.
+ 
+
