@@ -8,8 +8,7 @@ To use, simply 'get' with any of the following options:
 Login Commands
 ---------------
 
-*The following commands handle user logins and will work with / without
-being logged in*
+The following commands handle user logins and will work with / without being logged in
 
 <table>
   <tr><th>Command</th><th>Description</th></tr>
@@ -30,7 +29,7 @@ being logged in*
   <tr>
     <td>
       smart_login
-      **Depricated**
+      <b>Depricated</b>
     </td>
     <td>
       Logs out if logged in. Logs in if logged out.
@@ -39,8 +38,8 @@ being logged in*
   <tr>
     <td>get_user</td>
     <td>
-      Returns json with `{"username": "usn", "status": "success"}` if
-      logged in or `{"status": "Not logged in"}`, if not.
+      Returns json with <code>{"username": "usn", "status": "success"}</code>
+      if logged in or <code>{"status": "Not logged in"}</code>, if not.
     </td>
   </tr>
 </table>
@@ -48,9 +47,7 @@ being logged in*
 Project Tasks
 -------------
 
-*The following commands deal with project-level tasks, and all require
-`project_name=<project_name>` to be set, with the exception of
-`list_projects`*
+The following commands deal with project-level tasks, and all require `project_name` to be set, with the exception of `list_projects`
 
 <table>
   <tr><th>Command</th><th>Description</th></tr>
@@ -58,7 +55,7 @@ Project Tasks
     <td>list_projects</td>
     <td>
       Lists projects the current user has admin or member access to.
-      Does **not require** `project_name=<project_name>`
+      <b>Does not require <code>project_name</code></b>
     </td>
   </tr>
   <tr>
@@ -178,11 +175,12 @@ These deal with pages. They each require a `project_name` and `url`
       and y position are all saved, for access via Page Details.
       
       Also requires:
-      * `Message`
-      * `x_pos`
-      * `y_pos`
-      * `element_id`
-      * `uniqid`
+      <ul>
+        <li><code>Message</code></li>
+        <li><code>x_pos</code></li>
+        <li><code>y_pos</code></li>
+        <li><code>element_id</code></li>
+        <li><code>uniqid</code></li>
     </td>
   </tr>
   <tr>
